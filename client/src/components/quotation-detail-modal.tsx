@@ -42,19 +42,19 @@ export default function QuotationDetailModal({
   const { toast } = useToast();
 
   const { data: quotation, isLoading: quotationLoading } = useQuery<Quotation>({
-    queryKey: ["/api/quotations", quotationId],
+    queryKey: [`/api/quotations/${quotationId}`],
   });
 
   const { data: items, isLoading: itemsLoading } = useQuery<QuotationItem[]>({
-    queryKey: ["/api/quotations", quotationId, "items"],
+    queryKey: [`/api/quotations/${quotationId}/items`],
   });
 
   const updateItemMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
-      apiRequest("PUT", `/api/quotation-items/${id}`, data),
+      apiRequest("PATCH", `/api/quotation-items/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/quotations", quotationId, "items"],
+        queryKey: [`/api/quotations/${quotationId}/items`],
       });
     },
   });
@@ -65,7 +65,7 @@ export default function QuotationDetailModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
       queryClient.invalidateQueries({
-        queryKey: ["/api/quotations", quotationId],
+        queryKey: [`/api/quotations/${quotationId}`],
       });
       toast({
         title: "Cotação atualizada",
