@@ -25,6 +25,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Quotation, QuotationItem } from "@/lib/types";
@@ -39,6 +48,8 @@ export default function QuotationDetailModal({
   onClose,
 }: QuotationDetailModalProps) {
   const [internalObservation, setInternalObservation] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const { toast } = useToast();
 
   const { data: quotation, isLoading: quotationLoading } = useQuery<Quotation>({
@@ -48,6 +59,12 @@ export default function QuotationDetailModal({
   const { data: items, isLoading: itemsLoading } = useQuery<QuotationItem[]>({
     queryKey: [`/api/quotations/${quotationId}/items`],
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil((items?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = items?.slice(startIndex, endIndex) || [];
 
   const updateItemMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
@@ -189,80 +206,146 @@ export default function QuotationDetailModal({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items?.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="text-sm">{item.barcode}</TableCell>
-                      <TableCell className="text-sm">{item.productName}</TableCell>
-                      <TableCell className="text-sm">{item.quotedQuantity}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          className="w-20 text-sm"
-                          value={item.availableQuantity || ""}
-                          onChange={(e) =>
-                            handleItemUpdate(
-                              item.id,
-                              "availableQuantity",
-                              parseInt(e.target.value) || null
-                            )
-                          }
-                          disabled={quotation.status === "Enviada"}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="w-24 text-sm"
-                          value={item.unitPrice || ""}
-                          onChange={(e) =>
-                            handleItemUpdate(item.id, "unitPrice", e.target.value)
-                          }
-                          disabled={quotation.status === "Enviada"}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          className="w-32 text-sm"
-                          value={
-                            item.validity
-                              ? new Date(item.validity).toISOString().split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) =>
-                            handleItemUpdate(
-                              item.id,
-                              "validity",
-                              e.target.value || null
-                            )
-                          }
-                          disabled={quotation.status === "Enviada"}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={item.situation || ""}
-                          onValueChange={(value) =>
-                            handleItemUpdate(item.id, "situation", value)
-                          }
-                          disabled={quotation.status === "Enviada"}
-                        >
-                          <SelectTrigger className="w-24 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Disponível">Disponível</SelectItem>
-                            <SelectItem value="Indisponível">Indisponível</SelectItem>
-                            <SelectItem value="Parcial">Parcial</SelectItem>
-                          </SelectContent>
-                        </Select>
+                  {currentItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        Nenhum item encontrado
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    currentItems.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="text-sm">{item.barcode}</TableCell>
+                        <TableCell className="text-sm">{item.productName}</TableCell>
+                        <TableCell className="text-sm">{item.quotedQuantity}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            className="w-20 text-sm"
+                            value={item.availableQuantity || ""}
+                            onChange={(e) =>
+                              handleItemUpdate(
+                                item.id,
+                                "availableQuantity",
+                                parseInt(e.target.value) || null
+                              )
+                            }
+                            disabled={quotation.status === "Enviada"}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="w-24 text-sm"
+                            value={item.unitPrice || ""}
+                            onChange={(e) =>
+                              handleItemUpdate(item.id, "unitPrice", e.target.value)
+                            }
+                            disabled={quotation.status === "Enviada"}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="date"
+                            className="w-32 text-sm"
+                            value={
+                              item.validity
+                                ? new Date(item.validity).toISOString().split("T")[0]
+                                : ""
+                            }
+                            onChange={(e) =>
+                              handleItemUpdate(
+                                item.id,
+                                "validity",
+                                e.target.value || null
+                              )
+                            }
+                            disabled={quotation.status === "Enviada"}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={item.situation || ""}
+                            onValueChange={(value) =>
+                              handleItemUpdate(item.id, "situation", value)
+                            }
+                            disabled={quotation.status === "Enviada"}
+                          >
+                            <SelectTrigger className="w-24 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Disponível">Disponível</SelectItem>
+                              <SelectItem value="Indisponível">Indisponível</SelectItem>
+                              <SelectItem value="Parcial">Parcial</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm text-gray-700">
+                  Mostrando {startIndex + 1} a {Math.min(endIndex, items?.length || 0)} de {items?.length || 0} itens
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNum)}
+                            isActive={currentPage === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4">
