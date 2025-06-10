@@ -402,67 +402,125 @@ export default function QuotationEditPage() {
                 </TableRow>
               ) : (
                 currentItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-mono text-sm">{item.barcode}</TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div className="truncate" title={item.productName}>
-                      {item.productName}
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.quotedQuantity}</TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={item.availableQuantity || ''}
-                      onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : 0)}
-                      placeholder="Quantidade"
-                      className="w-24"
-                      disabled={!isEditable}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={item.unitPrice || ''}
-                      onChange={(e) => {
-                        // Allow both comma and dot as decimal separators during typing
-                        const value = e.target.value.replace(/[^\d,.-]/g, '');
-                        handleItemChange(item.id, 'unitPrice', value);
-                      }}
-                      placeholder="R$ 0,00"
-                      className="w-24"
-                      disabled={!isEditable}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="date"
-                      value={item.validity ? item.validity.split('T')[0] : ''}
-                      onChange={(e) => handleItemChange(item.id, 'validity', e.target.value)}
-                      className="w-32"
-                      disabled={!isEditable}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={item.situation || ''}
-                      onValueChange={(value) => handleItemChange(item.id, 'situation', value)}
-                      disabled={!isEditable}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Situação" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Disponível">Disponível</SelectItem>
-                        <SelectItem value="Parcial">Parcial</SelectItem>
-                        <SelectItem value="Indisponível">Indisponível</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
+                  <TableRow key={item.id}>
+                    <TableCell className="font-mono text-sm">{item.barcode}</TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <div className="truncate" title={item.productName}>
+                        {item.productName}
+                      </div>
+                    </TableCell>
+                    <TableCell>{item.quotedQuantity}</TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        value={item.availableQuantity || ''}
+                        onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : 0)}
+                        placeholder="Quantidade"
+                        className="w-24"
+                        disabled={!isEditable}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={item.unitPrice || ''}
+                        onChange={(e) => {
+                          // Allow both comma and dot as decimal separators during typing
+                          const value = e.target.value.replace(/[^\d,.-]/g, '');
+                          handleItemChange(item.id, 'unitPrice', value);
+                        }}
+                        placeholder="R$ 0,00"
+                        className="w-24"
+                        disabled={!isEditable}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="date"
+                        value={item.validity ? item.validity.split('T')[0] : ''}
+                        onChange={(e) => handleItemChange(item.id, 'validity', e.target.value)}
+                        className="w-32"
+                        disabled={!isEditable}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={item.situation || ''}
+                        onValueChange={(value) => handleItemChange(item.id, 'situation', value)}
+                        disabled={!isEditable}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Situação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Disponível">Disponível</SelectItem>
+                          <SelectItem value="Parcial">Parcial</SelectItem>
+                          <SelectItem value="Indisponível">Indisponível</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-700">
+                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredItems.length)} de {filteredItems.length} itens
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(pageNum)}
+                          isActive={currentPage === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
