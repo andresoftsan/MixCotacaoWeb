@@ -66,12 +66,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  const handleForgotPassword = () => {
-    toast({
-      title: "Recuperação de senha",
-      description: "Entre em contato com o administrador do sistema para recuperar sua senha.",
-    });
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -112,7 +107,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="remember"
@@ -127,14 +122,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     Lembrar credenciais
                   </Label>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-primary hover:underline"
-                  disabled={isLoading}
-                >
-                  Esqueci a senha
-                </button>
               </div>
 
               <Button
@@ -145,12 +132,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 text-center">
-                Acesso Administrador: administrador@softsan.com.br / M1xgestao@2025
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
