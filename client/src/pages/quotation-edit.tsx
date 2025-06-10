@@ -35,17 +35,13 @@ export default function QuotationEditPage() {
 
   const quotationId = params?.id ? parseInt(params.id) : null;
 
-  console.log("Route match:", match, "Params:", params, "QuotationId:", quotationId);
-
   const { data: quotation, isLoading: quotationLoading, error: quotationError } = useQuery<Quotation>({
-    queryKey: ["/api/quotations", quotationId],
+    queryKey: [`/api/quotations/${quotationId}`],
     enabled: !!quotationId,
   });
 
-  console.log("Quotation data:", quotation, "Loading:", quotationLoading, "Error:", quotationError);
-
   const { data: quotationItems, isLoading: itemsLoading } = useQuery<QuotationItem[]>({
-    queryKey: ["/api/quotations", quotationId, "items"],
+    queryKey: [`/api/quotations/${quotationId}/items`],
     enabled: !!quotationId,
   });
 
@@ -68,7 +64,7 @@ export default function QuotationEditPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quotations", quotationId, "items"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/quotations/${quotationId}/items`] });
       toast({
         title: "Sucesso",
         description: "Item atualizado com sucesso",
