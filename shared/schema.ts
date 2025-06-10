@@ -46,6 +46,11 @@ export const insertSellerSchema = createInsertSchema(sellers).omit({
 export const insertQuotationSchema = createInsertSchema(quotations).omit({
   id: true,
   createdAt: true,
+  number: true,
+  sellerId: true,
+}).extend({
+  date: z.string().transform(str => new Date(str)),
+  deadline: z.string().transform(str => new Date(str)),
 });
 
 export const insertQuotationItemSchema = createInsertSchema(quotationItems).omit({
