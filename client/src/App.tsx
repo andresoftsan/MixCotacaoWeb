@@ -14,10 +14,10 @@ import SettingsPage from "@/pages/settings";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 
-function AuthenticatedApp({ user }: { user: User }) {
+function AuthenticatedApp({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <Sidebar user={user} />
+      <Sidebar user={user} onLogout={onLogout} />
       <div className="flex-1 flex flex-col">
         <Header user={user} />
         <main className="flex-1 p-6">
@@ -80,7 +80,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         {user ? (
-          <AuthenticatedApp user={user} />
+          <AuthenticatedApp user={user} onLogout={handleLogout} />
         ) : (
           <LoginPage onLogin={handleLogin} />
         )}

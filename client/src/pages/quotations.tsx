@@ -21,7 +21,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Plus, Edit, Eye, Search } from "lucide-react";
+import { Edit, Eye, Search } from "lucide-react";
 import { Quotation } from "@/lib/types";
 import QuotationDetailModal from "@/components/quotation-detail-modal";
 
@@ -116,10 +116,6 @@ export default function QuotationsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Minhas Cotações</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Cotação
-        </Button>
       </div>
 
       {/* Search Filter */}

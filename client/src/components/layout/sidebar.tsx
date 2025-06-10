@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { BarChart3, FileText, Users, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { User } from "@/lib/auth";
+import { User, authService } from "@/lib/auth";
 
 interface SidebarProps {
   user: User;
+  onLogout: () => void;
 }
 
 const menuItems = [
@@ -31,15 +32,21 @@ const menuItems = [
   },
 ];
 
-export default function Sidebar({ user }: SidebarProps) {
+export default function Sidebar({ user, onLogout }: SidebarProps) {
   const [location] = useLocation();
 
   const filteredMenuItems = menuItems.filter(
     (item) => !item.adminOnly || user.isAdmin
   );
 
-  const handleLogout = () => {
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      onLogout();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      onLogout(); // Force logout even if API call fails
+    }
   };
 
   return (
