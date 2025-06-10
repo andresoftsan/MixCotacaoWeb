@@ -161,6 +161,9 @@ export class DatabaseStorage implements IStorage {
     enviadas: number;
     prazoEncerrado: number;
   }> {
+    // First update expired quotations
+    await this.updateExpiredQuotations();
+    
     const allQuotations = await db
       .select()
       .from(quotations)
