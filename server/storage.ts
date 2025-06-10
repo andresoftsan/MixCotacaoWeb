@@ -1,6 +1,6 @@
 import { sellers, quotations, quotationItems, type Seller, type InsertSeller, type Quotation, type InsertQuotation, type QuotationItem, type InsertQuotationItem, type UpdateQuotationItem } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Sellers
@@ -32,6 +32,9 @@ export interface IStorage {
     enviadas: number;
     prazoEncerrado: number;
   }>;
+
+  // Update expired quotations
+  updateExpiredQuotations(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -77,6 +80,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getQuotationsBySeller(sellerId: number): Promise<Quotation[]> {
+    // First update expired quotations
+    await this.updateExpiredQuotations();
+    
     return await db
       .select()
       .from(quotations)
@@ -85,6 +91,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllQuotations(): Promise<Quotation[]> {
+    // First update expired quotations
+    await this.updateExpiredQuotations();
+    
     return await db
       .select()
       .from(quotations)
@@ -168,6 +177,20 @@ export class DatabaseStorage implements IStorage {
       enviadas,
       prazoEncerrado
     };
+  }
+
+  async updateExpiredQuotations(): Promise<void> {
+    const now = new Date();
+    
+    await db
+      .update(quotations)
+      .set({ status: "Prazo Encerrado" })
+      .where(
+        and(
+          lt(quotations.deadline, now),
+          eq(quotations.status, "Aguardando digitação")
+        )
+      );
   }
 }
 
