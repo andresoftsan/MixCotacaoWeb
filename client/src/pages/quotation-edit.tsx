@@ -110,19 +110,37 @@ export default function QuotationEditPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/quotations/${quotationId}/items`] });
-      toast({
-        title: "Sucesso",
-        description: "Item atualizado com sucesso",
+    onMutate: async ({ itemId, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [`/api/quotations/${quotationId}/items`] });
+      
+      // Snapshot the previous value
+      const previousItems = queryClient.getQueryData([`/api/quotations/${quotationId}/items`]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData([`/api/quotations/${quotationId}/items`], (old: QuotationItem[] | undefined) => {
+        if (!old) return old;
+        return old.map(item => 
+          item.id === itemId ? { ...item, ...data } : item
+        );
       });
+      
+      return { previousItems };
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Rollback on error
+      if (context?.previousItems) {
+        queryClient.setQueryData([`/api/quotations/${quotationId}/items`], context.previousItems);
+      }
       toast({
         title: "Erro",
         description: error.message || "Erro ao atualizar item",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: [`/api/quotations/${quotationId}/items`] });
     },
   });
 
