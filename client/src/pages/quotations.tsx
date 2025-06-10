@@ -149,13 +149,15 @@ export default function QuotationsPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewQuotation(quotation.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          {quotation.status !== "Aguardando digitação" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewQuotation(quotation.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
