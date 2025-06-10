@@ -100,7 +100,7 @@ sudo npm install -g pm2
 echo "👤 Criando usuário da aplicação..."
 sudo useradd -m -s /bin/bash mixapp || true
 sudo mkdir -p /opt/mixcotacao
-sudo chown mixapp:mixapp /opt/mixcotacao
+sudo chown -R mixapp:mixapp /opt/mixcotacao
 
 # 6. Baixar código da aplicação
 echo "📥 Baixando código da aplicação..."
@@ -110,7 +110,7 @@ cd /tmp
 sudo -u mixapp mkdir -p /opt/mixcotacao/{server,client/src,shared}
 
 # Package.json
-sudo -u mixapp cat > /opt/mixcotacao/package.json << 'EOF'
+sudo -u mixapp bash -c 'cat > /opt/mixcotacao/package.json << '"'"'EOF'"'"'
 {
   "name": "mix-cotacao-web",
   "version": "1.0.0",
@@ -140,7 +140,7 @@ sudo -u mixapp cat > /opt/mixcotacao/package.json << 'EOF'
 EOF
 
 # Configurar variáveis de ambiente
-sudo -u mixapp cat > /opt/mixcotacao/.env << 'EOF'
+sudo -u mixapp bash -c 'cat > /opt/mixcotacao/.env << '"'"'EOF'"'"'
 NODE_ENV=production
 PORT=3000
 DATABASE_URL=postgresql://mixadmin:MixGestao2025!Database@localhost:5432/mixcotacao
@@ -148,7 +148,7 @@ SESSION_SECRET=mix-cotacao-production-$(openssl rand -hex 32)
 EOF
 
 # Schema básico
-sudo -u mixapp cat > /opt/mixcotacao/shared/schema.ts << 'EOF'
+sudo -u mixapp bash -c 'cat > /opt/mixcotacao/shared/schema.ts << '"'"'EOF'"'"'
 import { pgTable, text, serial, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -199,7 +199,7 @@ export type Seller = typeof sellers.$inferSelect;
 EOF
 
 # Servidor básico
-sudo -u mixapp cat > /opt/mixcotacao/server/index.ts << 'EOF'
+sudo -u mixapp bash -c 'cat > /opt/mixcotacao/server/index.ts << '"'"'EOF'"'"'
 import express from 'express';
 import session from 'express-session';
 import { Pool } from '@neondatabase/serverless';
