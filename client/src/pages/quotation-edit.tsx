@@ -113,9 +113,12 @@ export default function QuotationEditPage() {
   };
 
   const handleSaveItem = (item: QuotationItem) => {
+    // Convert comma to dot for decimal prices
+    const normalizedPrice = item.unitPrice ? item.unitPrice.replace(',', '.') : undefined;
+    
     const updateData = {
       availableQuantity: item.availableQuantity || undefined,
-      unitPrice: item.unitPrice || undefined,
+      unitPrice: normalizedPrice,
       validity: item.validity || undefined,
       situation: item.situation || undefined,
     };
@@ -270,7 +273,11 @@ export default function QuotationEditPage() {
                   <TableCell>
                     <Input
                       value={item.unitPrice || ''}
-                      onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
+                      onChange={(e) => {
+                        // Allow both comma and dot as decimal separators during typing
+                        const value = e.target.value.replace(/[^\d,.-]/g, '');
+                        handleItemChange(item.id, 'unitPrice', value);
+                      }}
                       placeholder="R$ 0,00"
                       className="w-24"
                     />
