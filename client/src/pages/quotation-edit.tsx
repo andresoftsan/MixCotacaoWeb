@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Quotation, QuotationItem } from "@/lib/types";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ export default function QuotationEditPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [items, setItems] = useState<QuotationItem[]>([]);
+  const [saveTimeouts, setSaveTimeouts] = useState<Map<number, NodeJS.Timeout>>(new Map());
 
   const quotationId = params?.id ? parseInt(params.id) : null;
 
@@ -80,11 +81,18 @@ export default function QuotationEditPage() {
   });
 
   const handleItemChange = (itemId: number, field: string, value: string | number | undefined) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, [field]: value } : item
-      )
+    const updatedItems = items.map(item =>
+      item.id === itemId ? { ...item, [field]: value } : item
     );
+    setItems(updatedItems);
+    
+    // Auto-save the item after a brief delay
+    const updatedItem = updatedItems.find(item => item.id === itemId);
+    if (updatedItem) {
+      setTimeout(() => {
+        handleSaveItem(updatedItem);
+      }, 500);
+    }
   };
 
   const handleSaveItem = (item: QuotationItem) => {
@@ -98,11 +106,7 @@ export default function QuotationEditPage() {
     updateItemMutation.mutate({ itemId: item.id, data: updateData });
   };
 
-  const handleSaveAll = () => {
-    items.forEach(item => {
-      handleSaveItem(item);
-    });
-  };
+
 
   const handleBack = () => {
     setLocation("/cotacoes");
@@ -126,18 +130,12 @@ export default function QuotationEditPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold">Editar Cotação {quotation.number}</h1>
-        </div>
-        <Button onClick={handleSaveAll} disabled={updateItemMutation.isPending}>
-          <Save className="h-4 w-4 mr-2" />
-          Salvar Tudo
+      <div className="flex items-center space-x-4">
+        <Button variant="ghost" onClick={handleBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
         </Button>
+        <h1 className="text-2xl font-bold">Editar Cotação {quotation.number}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -231,7 +229,6 @@ export default function QuotationEditPage() {
                 <TableHead>Preço Unitário</TableHead>
                 <TableHead>Validade</TableHead>
                 <TableHead>Situação</TableHead>
-                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -283,15 +280,6 @@ export default function QuotationEditPage() {
                         <SelectItem value="Indisponível">Indisponível</SelectItem>
                       </SelectContent>
                     </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveItem(item)}
-                      disabled={updateItemMutation.isPending}
-                    >
-                      <Save className="h-3 w-3" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

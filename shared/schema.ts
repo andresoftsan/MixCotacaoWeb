@@ -63,6 +63,8 @@ export const updateQuotationItemSchema = createInsertSchema(quotationItems).omit
   barcode: true,
   productName: true,
   quotedQuantity: true,
+}).extend({
+  validity: z.string().transform(str => str ? new Date(str) : null).optional(),
 }).partial();
 
 export type InsertSeller = z.infer<typeof insertSellerSchema>;
