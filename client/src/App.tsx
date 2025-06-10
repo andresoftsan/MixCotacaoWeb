@@ -8,6 +8,7 @@ import { User, authService } from "./lib/auth";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import QuotationsPage from "@/pages/quotations";
+import QuotationEditPage from "@/pages/quotation-edit";
 import SellersPage from "@/pages/sellers";
 import SettingsPage from "@/pages/settings";
 import Sidebar from "@/components/layout/sidebar";
@@ -23,6 +24,7 @@ function AuthenticatedApp({ user }: { user: User }) {
           <Switch>
             <Route path="/" component={DashboardPage} />
             <Route path="/cotacoes" component={QuotationsPage} />
+            <Route path="/cotacoes/editar/:id" component={QuotationEditPage} />
             <Route path="/vendedores" component={SellersPage} />
             <Route path="/configuracoes" component={SettingsPage} />
           </Switch>
