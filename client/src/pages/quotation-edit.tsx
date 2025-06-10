@@ -22,7 +22,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Send } from "lucide-react";
 import { Quotation, QuotationItem } from "@/lib/types";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -75,6 +86,37 @@ export default function QuotationEditPage() {
       toast({
         title: "Erro",
         description: error.message || "Erro ao atualizar item",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendQuotationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/quotations/${quotationId}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: "Enviada" }),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to send quotation');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/quotations/${quotationId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "Sucesso",
+        description: "Cotação enviada com sucesso",
+      });
+      setLocation("/cotacoes");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao enviar cotação",
         variant: "destructive",
       });
     },
@@ -148,14 +190,44 @@ export default function QuotationEditPage() {
     return <div>Cotação não encontrada</div>;
   }
 
+  const isEditable = quotation?.status === "Aguardando digitação";
+
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <h1 className="text-2xl font-bold">Editar Cotação {quotation.number}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={handleBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+          <h1 className="text-2xl font-bold">
+            {isEditable ? "Editar" : "Visualizar"} Cotação {quotation.number}
+          </h1>
+        </div>
+        {isEditable && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button disabled={sendQuotationMutation.isPending}>
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Cotação
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Deseja realmente enviar esta cotação? Após o envio, não será possível editar os dados.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Não</AlertDialogCancel>
+                <AlertDialogAction onClick={() => sendQuotationMutation.mutate()}>
+                  Sim, Enviar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -268,6 +340,7 @@ export default function QuotationEditPage() {
                       onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : 0)}
                       placeholder="Quantidade"
                       className="w-24"
+                      disabled={!isEditable}
                     />
                   </TableCell>
                   <TableCell>
@@ -280,6 +353,7 @@ export default function QuotationEditPage() {
                       }}
                       placeholder="R$ 0,00"
                       className="w-24"
+                      disabled={!isEditable}
                     />
                   </TableCell>
                   <TableCell>
@@ -288,12 +362,14 @@ export default function QuotationEditPage() {
                       value={item.validity ? item.validity.split('T')[0] : ''}
                       onChange={(e) => handleItemChange(item.id, 'validity', e.target.value)}
                       className="w-32"
+                      disabled={!isEditable}
                     />
                   </TableCell>
                   <TableCell>
                     <Select
                       value={item.situation || ''}
                       onValueChange={(value) => handleItemChange(item.id, 'situation', value)}
+                      disabled={!isEditable}
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Situação" />
