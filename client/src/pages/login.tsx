@@ -148,7 +148,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-xs text-gray-500 text-center">
-                Acesso Administrador: administrador / M1xgestao@2025
+                Acesso Administrador: administrador@softsan.com.br / M1xgestao@2025
               </p>
             </div>
           </CardContent>

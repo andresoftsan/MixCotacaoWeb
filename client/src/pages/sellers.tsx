@@ -54,7 +54,7 @@ export default function SellersPage() {
   };
 
   const handleDeleteSeller = (seller: Seller) => {
-    if (seller.email === "administrador") {
+    if (seller.email === "administrador@softsan.com.br") {
       toast({
         title: "Ação não permitida",
         description: "Não é possível remover o usuário administrador.",
@@ -150,7 +150,7 @@ export default function SellersPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {seller.email !== "administrador" && (
+                          {seller.email !== "administrador@softsan.com.br" && (
                             <Button
                               variant="ghost"
                               size="sm"
