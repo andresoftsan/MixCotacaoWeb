@@ -1,0 +1,41 @@
+# Mix Cotação Web - Configuração de Variáveis
+# Copie este arquivo para terraform.tfvars e ajuste os valores
+
+# Configuração AWS
+aws_region = "us-east-1"
+environment = "production"
+project_name = "mix-cotacao-web"
+
+# Domínio (opcional)
+domain_name = "mixcotacao.seudominio.com.br"
+
+# Banco de Dados
+db_password = "SuaSenhaSegura123!"
+db_username = "mixadmin"
+db_name = "mixcotacao"
+db_instance_class = "db.t3.micro"
+allocated_storage = 20
+backup_retention_period = 7
+
+# Infraestrutura
+instance_type = "t3.small"
+min_size = 1
+max_size = 3
+desired_capacity = 2
+
+# Segurança
+ssh_cidr_blocks = ["SEU.IP.PUBLICO/32"]  # Substitua pelo seu IP
+enable_https = false  # Altere para true se tiver certificado SSL
+certificate_arn = ""  # ARN do certificado se enable_https = true
+
+# Monitoramento
+enable_monitoring = true
+log_retention_days = 14
+enable_deletion_protection = false  # true para produção
+
+# Tags adicionais
+tags = {
+  Owner = "SeuNome"
+  CostCenter = "TI"
+  Application = "MixCotacao"
+}
