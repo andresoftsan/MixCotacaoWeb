@@ -79,7 +79,7 @@ export default function QuotationEditPage() {
     },
   });
 
-  const handleItemChange = (itemId: number, field: string, value: string | number) => {
+  const handleItemChange = (itemId: number, field: string, value: string | number | undefined) => {
     setItems(prevItems =>
       prevItems.map(item =>
         item.id === itemId ? { ...item, [field]: value } : item
@@ -248,7 +248,7 @@ export default function QuotationEditPage() {
                     <Input
                       type="number"
                       value={item.availableQuantity || ''}
-                      onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : undefined)}
+                      onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : 0)}
                       placeholder="Quantidade"
                       className="w-24"
                     />
