@@ -28,17 +28,21 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function QuotationEditPage() {
-  const [match, params] = useRoute("/quotations/edit/:id");
+  const [match, params] = useRoute("/cotacoes/editar/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [items, setItems] = useState<QuotationItem[]>([]);
 
   const quotationId = params?.id ? parseInt(params.id) : null;
 
-  const { data: quotation, isLoading: quotationLoading } = useQuery<Quotation>({
+  console.log("Route match:", match, "Params:", params, "QuotationId:", quotationId);
+
+  const { data: quotation, isLoading: quotationLoading, error: quotationError } = useQuery<Quotation>({
     queryKey: ["/api/quotations", quotationId],
     enabled: !!quotationId,
   });
+
+  console.log("Quotation data:", quotation, "Loading:", quotationLoading, "Error:", quotationError);
 
   const { data: quotationItems, isLoading: itemsLoading } = useQuery<QuotationItem[]>({
     queryKey: ["/api/quotations", quotationId, "items"],
@@ -105,7 +109,7 @@ export default function QuotationEditPage() {
   };
 
   const handleBack = () => {
-    setLocation("/quotations");
+    setLocation("/cotacoes");
   };
 
   if (!match || !quotationId) {
