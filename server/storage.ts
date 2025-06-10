@@ -68,7 +68,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSeller(id: number): Promise<boolean> {
     const result = await db.delete(sellers).where(eq(sellers.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getQuotation(id: number): Promise<Quotation | undefined> {
@@ -114,7 +114,7 @@ export class DatabaseStorage implements IStorage {
     
     // Then delete the quotation
     const result = await db.delete(quotations).where(eq(quotations.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getQuotationItems(quotationId: number): Promise<QuotationItem[]> {
@@ -143,7 +143,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteQuotationItem(id: number): Promise<boolean> {
     const result = await db.delete(quotationItems).where(eq(quotationItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getSellerQuotationStats(sellerId: number): Promise<{

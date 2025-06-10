@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import { insertSellerSchema, insertQuotationSchema, insertQuotationItemSchema, updateQuotationItemSchema } from "@shared/schema";
@@ -13,7 +14,7 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware setup
-  app.use(require('express-session')({
+  app.use(session({
     secret: process.env.SESSION_SECRET || 'mix-cotacao-secret-key',
     resave: false,
     saveUninitialized: false,
