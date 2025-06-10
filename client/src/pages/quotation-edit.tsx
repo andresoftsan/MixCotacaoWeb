@@ -52,12 +52,16 @@ export default function QuotationEditPage() {
   }, [quotationItems]);
 
   const updateItemMutation = useMutation({
-    mutationFn: async ({ itemId, data }: { itemId: number; data: Partial<QuotationItem> }) => {
-      return apiRequest(`/api/quotation-items/${itemId}`, {
+    mutationFn: async ({ itemId, data }: { itemId: number; data: any }) => {
+      const response = await fetch(`/api/quotation-items/${itemId}`, {
         method: "PATCH",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
       });
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotations", quotationId, "items"] });
@@ -85,10 +89,10 @@ export default function QuotationEditPage() {
 
   const handleSaveItem = (item: QuotationItem) => {
     const updateData = {
-      availableQuantity: item.availableQuantity || null,
-      unitPrice: item.unitPrice || null,
-      validity: item.validity || null,
-      situation: item.situation || null,
+      availableQuantity: item.availableQuantity || undefined,
+      unitPrice: item.unitPrice || undefined,
+      validity: item.validity || undefined,
+      situation: item.situation || undefined,
     };
 
     updateItemMutation.mutate({ itemId: item.id, data: updateData });
@@ -244,7 +248,7 @@ export default function QuotationEditPage() {
                     <Input
                       type="number"
                       value={item.availableQuantity || ''}
-                      onChange={(e) => handleItemChange(item.id, 'availableQuantity', parseInt(e.target.value) || null)}
+                      onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder="Quantidade"
                       className="w-24"
                     />

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -16,6 +17,7 @@ import QuotationDetailModal from "@/components/quotation-detail-modal";
 
 export default function QuotationsPage() {
   const [selectedQuotationId, setSelectedQuotationId] = useState<number | null>(null);
+  const [, setLocation] = useLocation();
 
   const { data: quotations, isLoading } = useQuery<Quotation[]>({
     queryKey: ["/api/quotations"],
@@ -40,6 +42,10 @@ export default function QuotationsPage() {
   };
 
   const handleEditQuotation = (quotationId: number) => {
+    setLocation(`/cotacoes/editar/${quotationId}`);
+  };
+
+  const handleViewQuotation = (quotationId: number) => {
     setSelectedQuotationId(quotationId);
   };
 
@@ -146,7 +152,7 @@ export default function QuotationsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditQuotation(quotation.id)}
+                            onClick={() => handleViewQuotation(quotation.id)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>

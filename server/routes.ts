@@ -343,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/quotation-items/:id", requireAuth, async (req, res) => {
+  app.patch("/api/quotation-items/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const itemData = updateQuotationItemSchema.parse(req.body);
