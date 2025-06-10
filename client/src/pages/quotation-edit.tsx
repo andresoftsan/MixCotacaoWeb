@@ -86,13 +86,30 @@ export default function QuotationEditPage() {
     );
     setItems(updatedItems);
     
-    // Auto-save the item after a brief delay
-    const updatedItem = updatedItems.find(item => item.id === itemId);
-    if (updatedItem) {
-      setTimeout(() => {
-        handleSaveItem(updatedItem);
-      }, 500);
+    // Clear existing timeout for this item
+    const existingTimeout = saveTimeouts.get(itemId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
     }
+    
+    // Set new timeout for auto-save
+    const newTimeout = setTimeout(() => {
+      const updatedItem = updatedItems.find(item => item.id === itemId);
+      if (updatedItem) {
+        handleSaveItem(updatedItem);
+      }
+      setSaveTimeouts(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
+    }, 1000);
+    
+    setSaveTimeouts(prev => {
+      const newMap = new Map(prev);
+      newMap.set(itemId, newTimeout);
+      return newMap;
+    });
   };
 
   const handleSaveItem = (item: QuotationItem) => {
