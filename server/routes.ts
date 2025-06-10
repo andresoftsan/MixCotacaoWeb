@@ -27,11 +27,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize admin user if not exists
   app.use(async (req, res, next) => {
     try {
-      const adminExists = await storage.getSellerByEmail("administrador");
+      const adminExists = await storage.getSellerByEmail("administrador@softsan.com.br");
       if (!adminExists) {
         const hashedPassword = await bcrypt.hash("M1xgestao@2025", 10);
         await storage.createSeller({
-          email: "administrador",
+          email: "administrador@softsan.com.br",
           name: "Administrador",
           password: hashedPassword,
           status: "Ativo"
@@ -82,13 +82,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       req.session.userId = seller.id;
-      req.session.isAdmin = seller.email === "administrador";
+      req.session.isAdmin = seller.email === "administrador@softsan.com.br";
 
       res.json({ 
         id: seller.id, 
         name: seller.name, 
         email: seller.email,
-        isAdmin: seller.email === "administrador"
+        isAdmin: seller.email === "administrador@softsan.com.br"
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        isAdmin: seller.email === "administrador"
+        isAdmin: seller.email === "administrador@softsan.com.br"
       });
     } catch (error) {
       console.error("Get user error:", error);

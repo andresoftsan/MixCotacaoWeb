@@ -122,7 +122,7 @@ export default function SellerFormModal({ seller, onClose }: SellerFormModalProp
                 setFormData({ ...formData, email: e.target.value })
               }
               required
-              disabled={mutation.isPending || (seller?.email === "administrador")}
+              disabled={mutation.isPending || (seller?.email === "administrador@softsan.com.br")}
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function SellerFormModal({ seller, onClose }: SellerFormModalProp
               onValueChange={(value) =>
                 setFormData({ ...formData, status: value as "Ativo" | "Inativo" })
               }
-              disabled={mutation.isPending || (seller?.email === "administrador")}
+              disabled={mutation.isPending || (seller?.email === "administrador@softsan.com.br")}
             >
               <SelectTrigger>
                 <SelectValue />
