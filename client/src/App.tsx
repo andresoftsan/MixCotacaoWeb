@@ -60,10 +60,11 @@ function App() {
   const handleLogout = async () => {
     try {
       await authService.logout();
-      setUser(null);
-      queryClient.clear();
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      setUser(null);
+      queryClient.clear();
     }
   };
 
