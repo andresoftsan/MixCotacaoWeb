@@ -26,6 +26,16 @@ export const quotations = pgTable("quotations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const apiKeys = pgTable("api_keys", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  key: text("key").notNull().unique(),
+  sellerId: integer("seller_id").references(() => sellers.id).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
 export const quotationItems = pgTable("quotation_items", {
   id: serial("id").primaryKey(),
   quotationId: integer("quotation_id").references(() => quotations.id).notNull(),
