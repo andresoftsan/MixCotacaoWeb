@@ -27,8 +27,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize admin user if not exists
   app.use(async (req, res, next) => {
     try {
+      console.log("Testing database connection...");
       const adminExists = await storage.getSellerByEmail("administrador@softsan.com.br");
+      console.log("Database connection successful. Admin exists:", !!adminExists);
+      
       if (!adminExists) {
+        console.log("Creating admin user...");
         const hashedPassword = await bcrypt.hash("M1xgestao@2025", 10);
         await storage.createSeller({
           email: "administrador@softsan.com.br",
@@ -36,9 +40,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: hashedPassword,
           status: "Ativo"
         });
+        console.log("Admin user created successfully");
       }
-    } catch (error) {
-      console.error("Error initializing admin user:", error);
+    } catch (error: any) {
+      console.error("Database connection error:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
     }
     next();
   });
@@ -78,37 +87,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login attempt:", { email: req.body?.email, hasPassword: !!req.body?.password });
+      
       const { email, password } = req.body;
       
       if (!email || !password) {
+        console.log("Missing credentials");
         return res.status(400).json({ message: "Email e senha são obrigatórios" });
       }
 
+      console.log("Attempting to find seller by email:", email);
       const seller = await storage.getSellerByEmail(email);
       if (!seller) {
+        console.log("Seller not found for email:", email);
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
+      console.log("Seller found, checking password");
       const isValidPassword = await bcrypt.compare(password, seller.password);
       if (!isValidPassword) {
+        console.log("Invalid password for email:", email);
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
       if (seller.status === "Inativo") {
+        console.log("Inactive seller:", email);
         return res.status(401).json({ message: "Usuário inativo" });
       }
 
+      console.log("Setting session for seller:", seller.id);
       req.session.userId = seller.id;
       req.session.isAdmin = seller.email === "administrador@softsan.com.br";
 
+      console.log("Login successful for:", email);
       res.json({ 
         id: seller.id, 
         name: seller.name, 
         email: seller.email,
         isAdmin: seller.email === "administrador@softsan.com.br"
       });
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (error: any) {
+      console.error("Login error details:", {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        email: req.body?.email
+      });
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -121,6 +145,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logout realizado com sucesso" });
     });
+  });
+
+  // Health check and diagnostics endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      const diagnostics = {
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: {
+          connected: false,
+          url_configured: !!process.env.DATABASE_URL,
+          url_sample: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + "..." : "not configured"
+        },
+        session: {
+          secret_configured: !!process.env.SESSION_SECRET,
+          store_type: "memory"
+        },
+        admin_user: {
+          exists: false,
+          checked: false
+        }
+      };
+
+      // Test database connection
+      try {
+        const adminUser = await storage.getSellerByEmail("administrador@softsan.com.br");
+        diagnostics.database.connected = true;
+        diagnostics.admin_user.exists = !!adminUser;
+        diagnostics.admin_user.checked = true;
+        
+        if (adminUser) {
+          console.log("Health check: Admin user found with ID:", adminUser.id);
+        } else {
+          console.log("Health check: Admin user not found");
+        }
+      } catch (dbError: any) {
+        diagnostics.database.connected = false;
+        diagnostics.status = "unhealthy";
+        console.error("Health check database error:", {
+          message: dbError.message,
+          code: dbError.code
+        });
+      }
+
+      res.json(diagnostics);
+    } catch (error: any) {
+      console.error("Health check error:", error);
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: error.message
+      });
+    }
   });
 
   // Get current user
