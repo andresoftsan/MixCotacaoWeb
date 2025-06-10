@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useRoute, useLocation } from "wouter";
@@ -33,7 +33,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Send } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ArrowLeft, Send, Search } from "lucide-react";
 import { Quotation, QuotationItem } from "@/lib/types";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +53,9 @@ export default function QuotationEditPage() {
   const { toast } = useToast();
   const [items, setItems] = useState<QuotationItem[]>([]);
   const [saveTimeouts, setSaveTimeouts] = useState<Map<number, NodeJS.Timeout>>(new Map());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const quotationId = params?.id ? parseInt(params.id) : null;
 
@@ -62,6 +74,29 @@ export default function QuotationEditPage() {
       setItems(quotationItems);
     }
   }, [quotationItems]);
+
+  // Filter items based on search term
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    if (!searchTerm.trim()) return items;
+
+    return items.filter((item) =>
+      item.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [items, searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredItems.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ itemId, data }: { itemId: number; data: any }) => {
@@ -308,7 +343,42 @@ export default function QuotationEditPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Itens da Cotação</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Itens da Cotação</CardTitle>
+            <div className="text-sm text-gray-600">
+              {filteredItems.length} de {items.length} itens
+            </div>
+          </div>
+          
+          {/* Search Filter */}
+          <div className="flex items-center space-x-2 mt-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por código de barras ou produto..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-8"
+                disabled={!isEditable}
+              />
+            </div>
+            {searchTerm && (
+              <Button
+                variant="outline"
+                onClick={() => handleSearchChange("")}
+                size="sm"
+                disabled={!isEditable}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+
+          {searchTerm && (
+            <div className="text-sm text-gray-600 mt-2">
+              Mostrando {filteredItems.length} resultado(s) para "{searchTerm}"
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -324,7 +394,14 @@ export default function QuotationEditPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {currentItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    {searchTerm ? "Nenhum item encontrado para a busca" : "Nenhum item encontrado"}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                currentItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-mono text-sm">{item.barcode}</TableCell>
                   <TableCell className="max-w-[200px]">
@@ -382,7 +459,8 @@ export default function QuotationEditPage() {
                     </Select>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
