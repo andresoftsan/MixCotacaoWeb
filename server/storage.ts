@@ -164,10 +164,21 @@ export class DatabaseStorage implements IStorage {
     // First update expired quotations
     await this.updateExpiredQuotations();
     
-    const allQuotations = await db
-      .select()
-      .from(quotations)
-      .where(eq(quotations.sellerId, sellerId));
+    // Check if user is admin to show all quotations or just their own
+    const seller = await this.getSeller(sellerId);
+    const isAdmin = seller?.email === "administrador@softsan.com.br";
+    
+    let allQuotations;
+    if (isAdmin) {
+      // Admin sees all quotations
+      allQuotations = await db.select().from(quotations);
+    } else {
+      // Regular sellers see only their quotations
+      allQuotations = await db
+        .select()
+        .from(quotations)
+        .where(eq(quotations.sellerId, sellerId));
+    }
 
     const total = allQuotations.length;
     const aguardandoDigitacao = allQuotations.filter(q => q.status === "Aguardando digitação").length;
