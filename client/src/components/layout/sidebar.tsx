@@ -29,15 +29,22 @@ const menuItems = [
     icon: Settings,
     label: "Configurações",
     path: "/configuracoes",
+    superAdminOnly: true,
   },
 ];
 
 export default function Sidebar({ user, onLogout }: SidebarProps) {
   const [location] = useLocation();
 
-  const filteredMenuItems = menuItems.filter(
-    (item) => !item.adminOnly || user.isAdmin
-  );
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.superAdminOnly) {
+      return user.email === "administrador@softsan.com.br";
+    }
+    if (item.adminOnly) {
+      return user.isAdmin;
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     try {

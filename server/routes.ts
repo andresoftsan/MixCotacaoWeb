@@ -58,6 +58,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  const requireSuperAdmin = async (req: any, res: any, next: any) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    try {
+      const seller = await storage.getSeller(req.session.userId);
+      if (!seller || seller.email !== "administrador@softsan.com.br") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      next();
+    } catch (error) {
+      console.error("Super admin check error:", error);
+      return res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  };
+
   // Login
   app.post("/api/auth/login", async (req, res) => {
     try {

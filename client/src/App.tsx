@@ -11,6 +11,7 @@ import QuotationsPage from "@/pages/quotations";
 import QuotationEditPage from "@/pages/quotation-edit";
 import SellersPage from "@/pages/sellers";
 import SettingsPage from "@/pages/settings";
+import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 
@@ -26,7 +27,13 @@ function AuthenticatedApp({ user, onLogout }: { user: User; onLogout: () => void
             <Route path="/cotacoes" component={QuotationsPage} />
             <Route path="/cotacoes/editar/:id" component={QuotationEditPage} />
             <Route path="/vendedores" component={SellersPage} />
-            <Route path="/configuracoes" component={SettingsPage} />
+            <Route path="/configuracoes">
+              {user.email === "administrador@softsan.com.br" ? (
+                <SettingsPage />
+              ) : (
+                <NotFound />
+              )}
+            </Route>
           </Switch>
         </main>
       </div>
