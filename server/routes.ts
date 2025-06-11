@@ -216,9 +216,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sellers routes
   app.get("/api/sellers", authenticateFlexible, async (req, res) => {
     try {
-      console.log("Sellers route - req.user:", req.user);
-      console.log("Sellers route - req.user?.isAdmin:", req.user?.isAdmin);
-      
       // Check if user is admin
       if (!req.user?.isAdmin) {
         return res.status(403).json({ message: "Acesso restrito a administradores" });
@@ -446,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/quotation-items/:id", requireAuth, async (req, res) => {
+  app.patch("/api/quotation-items/:id", authenticateFlexible, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const itemData = updateQuotationItemSchema.parse(req.body);
@@ -464,9 +461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard stats
-  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
+  app.get("/api/dashboard/stats", authenticateFlexible, async (req, res) => {
     try {
-      const stats = await storage.getSellerQuotationStats(req.session.userId!);
+      const stats = await storage.getSellerQuotationStats(req.user!.id);
       res.json(stats);
     } catch (error) {
       console.error("Get dashboard stats error:", error);
