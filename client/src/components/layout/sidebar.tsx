@@ -29,7 +29,6 @@ const menuItems = [
     icon: Settings,
     label: "Configurações",
     path: "/configuracoes",
-    superAdminOnly: true,
   },
 ];
 
