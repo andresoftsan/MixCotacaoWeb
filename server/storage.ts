@@ -1,11 +1,12 @@
 import { sellers, quotations, quotationItems, apiKeys, type Seller, type InsertSeller, type Quotation, type InsertQuotation, type QuotationItem, type InsertQuotationItem, type UpdateQuotationItem, type ApiKey, type InsertApiKey } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, lt } from "drizzle-orm";
+import { eq, desc, and, lt, like } from "drizzle-orm";
 
 export interface IStorage {
   // Sellers
   getSeller(id: number): Promise<Seller | undefined>;
   getSellerByEmail(email: string): Promise<Seller | undefined>;
+  getSellersByName(name: string): Promise<Seller[]>;
   createSeller(seller: InsertSeller): Promise<Seller>;
   updateSeller(id: number, seller: Partial<InsertSeller>): Promise<Seller | undefined>;
   getAllSellers(): Promise<Seller[]>;
@@ -55,6 +56,13 @@ export class DatabaseStorage implements IStorage {
   async getSellerByEmail(email: string): Promise<Seller | undefined> {
     const [seller] = await db.select().from(sellers).where(eq(sellers.email, email));
     return seller || undefined;
+  }
+
+  async getSellersByName(name: string): Promise<Seller[]> {
+    return await db
+      .select()
+      .from(sellers)
+      .where(like(sellers.name, `%${name}%`));
   }
 
   async createSeller(insertSeller: InsertSeller): Promise<Seller> {

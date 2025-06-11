@@ -233,6 +233,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: undefined // Don't send password
         });
       }
+
+      // Check if searching by name
+      const name = req.query.name as string;
+      if (name) {
+        const sellers = await storage.getSellersByName(name);
+        if (sellers.length === 0) {
+          return res.status(404).json({ message: "Nenhum vendedor encontrado" });
+        }
+        return res.json(sellers.map(seller => ({
+          ...seller,
+          password: undefined // Don't send password
+        })));
+      }
       
       const sellers = await storage.getAllSellers();
       res.json(sellers.map(seller => ({
@@ -347,6 +360,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Vendedor removido com sucesso" });
     } catch (error) {
       console.error("Delete seller error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Change password route for non-admin users
+  app.patch("/api/change-password", authenticateFlexible, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          message: "Senha atual e nova senha são obrigatórias" 
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ 
+          message: "Nova senha deve ter pelo menos 6 caracteres" 
+        });
+      }
+
+      // Get current user data
+      const currentUser = await storage.getSeller(req.user!.id);
+      if (!currentUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, currentUser.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: "Senha atual incorreta" });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      const updatedUser = await storage.updateSeller(req.user!.id, { 
+        password: hashedNewPassword 
+      });
+
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Erro ao atualizar senha" });
+      }
+
+      res.json({ message: "Senha alterada com sucesso" });
+    } catch (error) {
+      console.error("Change password error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
