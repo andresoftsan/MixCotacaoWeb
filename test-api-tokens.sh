@@ -81,16 +81,49 @@ cotacao_data='{
 
 test_endpoint "POST" "/api/quotations" "Criar nova cotação" "$cotacao_data"
 
+# Test seller search by email
+echo ""
+echo "=== TESTANDO BUSCA DE VENDEDORES POR EMAIL ==="
+echo "GET /api/sellers?email=administrador@softsan.com.br"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/sellers?email=administrador@softsan.com.br" | jq .
+
+echo ""
+echo "--- Testando email não existente ---"
+echo "GET /api/sellers?email=nonexistent@email.com"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/sellers?email=nonexistent@email.com" | jq .
+
+# Test quotation search by client CNPJ and number
+echo ""
+echo "=== TESTANDO BUSCA DE COTAÇÕES POR CNPJ E NÚMERO ==="
+echo "GET /api/quotations?clientCnpj=98.765.432/0001-10&number=COT-2024-001"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/quotations?clientCnpj=98.765.432/0001-10&number=COT-2024-001" | jq .
+
+echo ""
+echo "--- Testando cotação não existente ---"
+echo "GET /api/quotations?clientCnpj=nonexistent&number=invalid"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/quotations?clientCnpj=nonexistent&number=invalid" | jq .
+
+echo ""
 echo "========================================="
 echo "TESTE CONCLUÍDO"
 echo "========================================="
 echo ""
 echo "📋 RESUMO DOS ENDPOINTS CORRIGIDOS:"
 echo "✅ GET /api/sellers (admin)"
+echo "✅ GET /api/sellers?email=<email> (busca por email)"
 echo "✅ POST /api/sellers (admin)" 
 echo "✅ PUT /api/sellers/:id (admin)"
 echo "✅ DELETE /api/sellers/:id (admin)"
 echo "✅ GET /api/quotations"
+echo "✅ GET /api/quotations?clientCnpj=<cnpj>&number=<numero> (busca específica)"
 echo "✅ GET /api/quotations/:id"
 echo "✅ POST /api/quotations"
 echo "✅ PUT /api/quotations/:id"
