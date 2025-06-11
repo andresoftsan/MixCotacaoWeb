@@ -221,6 +221,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso restrito a administradores" });
       }
       
+      // Check if searching by email
+      const email = req.query.email as string;
+      if (email) {
+        const seller = await storage.getSellerByEmail(email);
+        if (!seller) {
+          return res.status(404).json({ message: "Vendedor não encontrado" });
+        }
+        return res.json({
+          ...seller,
+          password: undefined // Don't send password
+        });
+      }
+      
       const sellers = await storage.getAllSellers();
       res.json(sellers.map(seller => ({
         ...seller,
@@ -228,6 +241,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })));
     } catch (error) {
       console.error("Get sellers error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar vendedor por e-mail via POST
+  app.post("/api/sellers/search", authenticateFlexible, async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Acesso restrito a administradores" });
+      }
+      
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Campo 'email' é obrigatório" });
+      }
+      
+      const seller = await storage.getSellerByEmail(email);
+      
+      if (!seller) {
+        return res.status(404).json({ message: "Vendedor não encontrado" });
+      }
+
+      res.json({
+        ...seller,
+        password: undefined // Don't send password
+      });
+    } catch (error) {
+      console.error("Get seller by email error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
