@@ -22,12 +22,14 @@ declare global {
 // Middleware para autenticação por token API
 export async function authenticateApiToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
+  console.log('authenticateApiToken called with header:', authHeader);
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token de acesso requerido' });
   }
 
   const token = authHeader.substring(7); // Remove "Bearer "
+  console.log('Extracted token:', token.substring(0, 10) + '...');
   
   try {
     const apiKey = await storage.getApiKey(token);
@@ -60,6 +62,7 @@ export async function authenticateApiToken(req: Request, res: Response, next: Ne
       sellerId: apiKey.sellerId
     };
 
+    console.log('Token authentication successful, user:', req.user);
     next();
   } catch (error) {
     console.error('Erro na autenticação por token:', error);
