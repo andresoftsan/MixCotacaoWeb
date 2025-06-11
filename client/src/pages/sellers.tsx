@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -10,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Seller } from "@/lib/types";
@@ -19,6 +21,10 @@ import SellerFormModal from "@/components/seller-form-modal";
 export default function SellersPage() {
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchName, setSearchName] = useState("");
+  const [searchResult, setSearchResult] = useState<Seller | Seller[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
   const { data: sellers, isLoading } = useQuery<Seller[]>({

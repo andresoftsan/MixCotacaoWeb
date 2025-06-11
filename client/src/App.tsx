@@ -28,11 +28,7 @@ function AuthenticatedApp({ user, onLogout }: { user: User; onLogout: () => void
             <Route path="/cotacoes/editar/:id" component={QuotationEditPage} />
             <Route path="/vendedores" component={SellersPage} />
             <Route path="/configuracoes">
-              {user.email === "administrador@softsan.com.br" ? (
-                <SettingsPage />
-              ) : (
-                <NotFound />
-              )}
+              <SettingsPage user={user} />
             </Route>
           </Switch>
         </main>
