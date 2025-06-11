@@ -1,4 +1,4 @@
-import { sellers, quotations, quotationItems, type Seller, type InsertSeller, type Quotation, type InsertQuotation, type QuotationItem, type InsertQuotationItem, type UpdateQuotationItem } from "@shared/schema";
+import { sellers, quotations, quotationItems, apiKeys, type Seller, type InsertSeller, type Quotation, type InsertQuotation, type QuotationItem, type InsertQuotationItem, type UpdateQuotationItem, type ApiKey, type InsertApiKey } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, lt } from "drizzle-orm";
 
@@ -35,6 +35,14 @@ export interface IStorage {
 
   // Update expired quotations
   updateExpiredQuotations(): Promise<void>;
+
+  // API Keys
+  getApiKey(key: string): Promise<ApiKey | undefined>;
+  getApiKeysBySeller(sellerId: number): Promise<ApiKey[]>;
+  createApiKey(apiKey: InsertApiKey): Promise<ApiKey>;
+  updateApiKeyLastUsed(id: number): Promise<void>;
+  deleteApiKey(id: number): Promise<boolean>;
+  toggleApiKey(id: number, isActive: boolean): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -205,6 +213,35 @@ export class DatabaseStorage implements IStorage {
           eq(quotations.status, "Aguardando digitação")
         )
       );
+  }
+
+  // API Keys methods
+  async getApiKey(key: string): Promise<ApiKey | undefined> {
+    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.key, key));
+    return apiKey || undefined;
+  }
+
+  async getApiKeysBySeller(sellerId: number): Promise<ApiKey[]> {
+    return await db.select().from(apiKeys).where(eq(apiKeys.sellerId, sellerId)).orderBy(desc(apiKeys.createdAt));
+  }
+
+  async createApiKey(insertApiKey: InsertApiKey): Promise<ApiKey> {
+    const [apiKey] = await db.insert(apiKeys).values(insertApiKey).returning();
+    return apiKey;
+  }
+
+  async updateApiKeyLastUsed(id: number): Promise<void> {
+    await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id));
+  }
+
+  async deleteApiKey(id: number): Promise<boolean> {
+    const result = await db.delete(apiKeys).where(eq(apiKeys.id, id));
+    return result.rowCount > 0;
+  }
+
+  async toggleApiKey(id: number, isActive: boolean): Promise<boolean> {
+    const result = await db.update(apiKeys).set({ isActive }).where(eq(apiKeys.id, id));
+    return result.rowCount > 0;
   }
 }
 

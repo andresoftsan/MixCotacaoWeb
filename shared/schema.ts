@@ -77,6 +77,12 @@ export const updateQuotationItemSchema = createInsertSchema(quotationItems).omit
   validity: z.string().transform(str => str ? new Date(str) : null).optional(),
 }).partial();
 
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
+  id: true,
+  createdAt: true,
+  lastUsedAt: true,
+});
+
 export type InsertSeller = z.infer<typeof insertSellerSchema>;
 export type Seller = typeof sellers.$inferSelect;
 
@@ -87,3 +93,6 @@ export type InsertQuotationItem = z.infer<typeof insertQuotationItemSchema>;
 export type QuotationItem = typeof quotationItems.$inferSelect;
 
 export type UpdateQuotationItem = z.infer<typeof updateQuotationItemSchema>;
+
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type ApiKey = typeof apiKeys.$inferSelect;

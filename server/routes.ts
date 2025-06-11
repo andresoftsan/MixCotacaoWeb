@@ -3,7 +3,9 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
-import { insertSellerSchema, insertQuotationSchema, insertQuotationItemSchema, updateQuotationItemSchema } from "@shared/schema";
+import { insertSellerSchema, insertQuotationSchema, insertQuotationItemSchema, updateQuotationItemSchema, insertApiKeySchema } from "@shared/schema";
+import { authenticateFlexible, authenticateApiToken, requireAdmin, requireSellerAccess } from "./auth-middleware";
+import { nanoid } from "nanoid";
 
 declare module "express-session" {
   interface SessionData {
@@ -465,6 +467,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
+
+  // API Key Management Routes
+  
+  // List API keys for current user
+  app.get("/api/api-keys", authenticateFlexible, async (req, res) => {
+    try {
+      const apiKeys = await storage.getApiKeysBySeller(req.user!.id);
+      // Remove the actual key from response for security
+      const safeApiKeys = apiKeys.map(key => ({
+        id: key.id,
+        name: key.name,
+        isActive: key.isActive,
+        createdAt: key.createdAt,
+        lastUsedAt: key.lastUsedAt,
+        keyPreview: key.key.substring(0, 8) + "..." + key.key.slice(-4)
+      }));
+      res.json(safeApiKeys);
+    } catch (error) {
+      console.error("Get API keys error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create new API key
+  app.post("/api/api-keys", authenticateFlexible, async (req, res) => {
+    try {
+      const { name } = req.body;
+      
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ message: "Nome da API key é obrigatório" });
+      }
+
+      // Generate a secure API key
+      const apiKey = "mxc_" + nanoid(32);
+      
+      const newApiKey = await storage.createApiKey({
+        name: name.trim(),
+        key: apiKey,
+        sellerId: req.user!.id,
+        isActive: true
+      });
+
+      res.status(201).json({
+        id: newApiKey.id,
+        name: newApiKey.name,
+        key: apiKey, // Only return the full key on creation
+        isActive: newApiKey.isActive,
+        createdAt: newApiKey.createdAt,
+        message: "API key criada com sucesso. Guarde esta chave em local seguro, ela não será exibida novamente."
+      });
+    } catch (error) {
+      console.error("Create API key error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Toggle API key active status
+  app.patch("/api/api-keys/:id/toggle", authenticateFlexible, async (req, res) => {
+    try {
+      const keyId = parseInt(req.params.id);
+      const { isActive } = req.body;
+
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: "Status deve ser true ou false" });
+      }
+
+      // Check if user owns this API key
+      const apiKeys = await storage.getApiKeysBySeller(req.user!.id);
+      const apiKey = apiKeys.find(key => key.id === keyId);
+      
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key não encontrada" });
+      }
+
+      const success = await storage.toggleApiKey(keyId, isActive);
+      
+      if (success) {
+        res.json({ 
+          message: `API key ${isActive ? 'ativada' : 'desativada'} com sucesso`,
+          isActive 
+        });
+      } else {
+        res.status(404).json({ message: "API key não encontrada" });
+      }
+    } catch (error) {
+      console.error("Toggle API key error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Delete API key
+  app.delete("/api/api-keys/:id", authenticateFlexible, async (req, res) => {
+    try {
+      const keyId = parseInt(req.params.id);
+
+      // Check if user owns this API key
+      const apiKeys = await storage.getApiKeysBySeller(req.user!.id);
+      const apiKey = apiKeys.find(key => key.id === keyId);
+      
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key não encontrada" });
+      }
+
+      const success = await storage.deleteApiKey(keyId);
+      
+      if (success) {
+        res.json({ message: "API key deletada com sucesso" });
+      } else {
+        res.status(404).json({ message: "API key não encontrada" });
+      }
+    } catch (error) {
+      console.error("Delete API key error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update existing routes to use flexible authentication
+  // This allows both session and token authentication
 
   const httpServer = createServer(app);
   return httpServer;
