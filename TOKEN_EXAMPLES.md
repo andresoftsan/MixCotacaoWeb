@@ -239,4 +239,28 @@ WHERE ak.key = 'mxc_test123456789012345678901234567890';
 **👤 Usuário:** Administrador (acesso total)
 **🌐 Base URL:** `http://localhost:5000`
 
+## Endpoints Corrigidos e Testados
+
+✅ **Vendedores (Admin):**
+- GET /api/sellers
+- POST /api/sellers
+- PUT /api/sellers/:id
+- DELETE /api/sellers/:id
+
+✅ **Cotações:**
+- GET /api/quotations
+- GET /api/quotations/:id
+- POST /api/quotations
+- PUT /api/quotations/:id
+
+✅ **Itens de Cotação:**
+- GET /api/quotations/:id/items
+- POST /api/quotations/:id/items
+- PATCH /api/quotation-items/:id
+
+✅ **Dashboard e Sistema:**
+- GET /api/dashboard/stats
+- GET /api/api-keys
+- GET /api/auth/me
+
 O sistema está pronto para integração com qualquer aplicação externa usando tokens API seguros.
