@@ -37,6 +37,25 @@ curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
 ]
 ```
 
+### 1.1. Buscar Vendedor por E-mail
+```bash
+curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
+     "http://localhost:5000/api/sellers?email=administrador%40softsan.com.br"
+```
+
+**Resposta:**
+```json
+{
+  "id": 2,
+  "email": "administrador@softsan.com.br",
+  "name": "Administrador",
+  "status": "Ativo",
+  "createdAt": "2025-06-10T14:52:58.120Z"
+}
+```
+
+**Nota:** O caractere `@` deve ser codificado como `%40` na URL.
+
 ### 2. Verificar Usuário Logado
 ```bash
 curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
