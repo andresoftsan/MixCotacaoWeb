@@ -235,8 +235,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/sellers", authenticateFlexible, requireAdmin, async (req, res) => {
+  app.post("/api/sellers", authenticateFlexible, async (req, res) => {
     try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Acesso restrito a administradores" });
+      }
+
       const sellerData = insertSellerSchema.parse(req.body);
       
       const existingSeller = await storage.getSellerByEmail(sellerData.email);
@@ -260,8 +264,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/sellers/:id", requireAdmin, async (req, res) => {
+  app.put("/api/sellers/:id", authenticateFlexible, async (req, res) => {
     try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Acesso restrito a administradores" });
+      }
+
       const id = parseInt(req.params.id);
       const sellerData = insertSellerSchema.partial().parse(req.body);
 
@@ -284,8 +292,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/sellers/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/sellers/:id", authenticateFlexible, async (req, res) => {
     try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Acesso restrito a administradores" });
+      }
+
       const id = parseInt(req.params.id);
       const success = await storage.deleteSeller(id);
       
@@ -318,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/quotations/:id", requireAuth, async (req, res) => {
+  app.get("/api/quotations/:id", authenticateFlexible, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const quotation = await storage.getQuotation(id);
@@ -328,7 +340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user can access this quotation
-      if (!req.session.isAdmin && quotation.sellerId !== req.session.userId) {
+      if (!req.user?.isAdmin && quotation.sellerId !== req.user?.id) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -339,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/quotations", requireAuth, async (req, res) => {
+  app.post("/api/quotations", authenticateFlexible, async (req, res) => {
     try {
       const quotationData = insertQuotationSchema.parse(req.body);
       
@@ -352,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quotation = await storage.createQuotation({
         ...quotationData,
         number,
-        sellerId: req.session.userId!
+        sellerId: req.user!.id
       });
 
       res.json(quotation);
@@ -362,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/quotations/:id", requireAuth, async (req, res) => {
+  app.put("/api/quotations/:id", authenticateFlexible, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const quotationData = insertQuotationSchema.partial().parse(req.body);
@@ -373,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user can update this quotation
-      if (!req.session.isAdmin && existingQuotation.sellerId !== req.session.userId) {
+      if (!req.user?.isAdmin && existingQuotation.sellerId !== req.user?.id) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -386,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quotation items routes
-  app.get("/api/quotations/:id/items", requireAuth, async (req, res) => {
+  app.get("/api/quotations/:id/items", authenticateFlexible, async (req, res) => {
     try {
       const quotationId = parseInt(req.params.id);
       
@@ -396,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user can access this quotation
-      if (!req.session.isAdmin && quotation.sellerId !== req.session.userId) {
+      if (!req.user?.isAdmin && quotation.sellerId !== req.user?.id) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -408,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/quotations/:id/items", requireAuth, async (req, res) => {
+  app.post("/api/quotations/:id/items", authenticateFlexible, async (req, res) => {
     try {
       const quotationId = parseInt(req.params.id);
       const itemData = insertQuotationItemSchema.parse({
@@ -422,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user can modify this quotation
-      if (!req.session.isAdmin && quotation.sellerId !== req.session.userId) {
+      if (!req.user?.isAdmin && quotation.sellerId !== req.user?.id) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
