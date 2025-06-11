@@ -69,13 +69,18 @@ export async function authenticateApiToken(req: Request, res: Response, next: Ne
 
 // Middleware flexível que aceita tanto sessão quanto token
 export async function authenticateFlexible(req: Request, res: Response, next: NextFunction) {
+  console.log('authenticateFlexible called with Authorization header:', req.headers.authorization?.substring(0, 20) + '...');
+  
   // Primeiro tenta autenticação por token
   const authHeader = req.headers.authorization;
   
   if (authHeader && authHeader.startsWith('Bearer ')) {
+    console.log('Using token authentication');
     return authenticateApiToken(req, res, next);
   }
 
+  console.log('Using session authentication, session userId:', req.session?.userId);
+  
   // Se não há token, verifica sessão
   if (!req.session?.userId) {
     return res.status(401).json({ message: 'Não autorizado' });
@@ -95,6 +100,7 @@ export async function authenticateFlexible(req: Request, res: Response, next: Ne
       isAdmin: seller.email === 'administrador@softsan.com.br'
     };
 
+    console.log('Session authentication successful, user:', req.user);
     next();
   } catch (error) {
     console.error('Erro na autenticação por sessão:', error);
@@ -104,9 +110,12 @@ export async function authenticateFlexible(req: Request, res: Response, next: Ne
 
 // Middleware para verificar se é admin
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  console.log('requireAdmin middleware - req.user:', req.user);
   if (!req.user?.isAdmin) {
+    console.log('Access denied - user is not admin');
     return res.status(403).json({ message: 'Acesso restrito a administradores' });
   }
+  console.log('Admin access granted');
   next();
 }
 
