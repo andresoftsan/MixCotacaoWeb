@@ -111,14 +111,49 @@ curl -s -X GET \
   -H "Authorization: Bearer $TOKEN" \
   "http://localhost:5000/api/quotations?clientCnpj=nonexistent&number=invalid" | jq .
 
+# Test seller search by name
+echo ""
+echo "=== TESTANDO BUSCA DE VENDEDORES POR NOME ==="
+echo "GET /api/sellers?name=Adm"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/sellers?name=Adm" | jq .
+
+echo ""
+echo "--- Testando nome não existente ---"
+echo "GET /api/sellers?name=inexistente"
+curl -s -X GET \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5000/api/sellers?name=inexistente" | jq .
+
+# Test password change functionality
+echo ""
+echo "=== TESTANDO ALTERAÇÃO DE SENHA ==="
+echo "PATCH /api/change-password"
+echo "Testando alteração de senha com dados válidos..."
+curl -s -X PATCH \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currentPassword": "NovaSenh@123", "newPassword": "M1xgestao@2025"}' \
+  http://localhost:5000/api/change-password | jq .
+
+echo ""
+echo "--- Testando senha atual incorreta ---"
+curl -s -X PATCH \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currentPassword": "senhaerrada", "newPassword": "NovaSenha123"}' \
+  http://localhost:5000/api/change-password | jq .
+
 echo ""
 echo "========================================="
 echo "TESTE CONCLUÍDO"
 echo "========================================="
 echo ""
-echo "📋 RESUMO DOS ENDPOINTS CORRIGIDOS:"
+echo "📋 RESUMO DOS ENDPOINTS IMPLEMENTADOS:"
 echo "✅ GET /api/sellers (admin)"
 echo "✅ GET /api/sellers?email=<email> (busca por email)"
+echo "✅ GET /api/sellers?name=<nome> (busca por nome)"
 echo "✅ POST /api/sellers (admin)" 
 echo "✅ PUT /api/sellers/:id (admin)"
 echo "✅ DELETE /api/sellers/:id (admin)"
@@ -132,6 +167,7 @@ echo "✅ POST /api/quotations/:id/items"
 echo "✅ PATCH /api/quotation-items/:id"
 echo "✅ GET /api/dashboard/stats"
 echo "✅ GET /api/api-keys"
+echo "✅ PATCH /api/change-password (alteração de senha)"
 echo ""
 echo "🔐 TOKEN ATIVO: mxc_test123456789012345678901234567890"
 echo "👤 USUÁRIO: Administrador (acesso total)"
