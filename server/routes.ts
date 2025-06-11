@@ -358,24 +358,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Se ambos os parâmetros estão presentes, buscar cotação específica
       if (clientCnpj && number) {
-        let quotations;
-        
-        if (req.user!.isAdmin) {
-          quotations = await storage.getAllQuotations();
-        } else {
-          quotations = await storage.getQuotationsBySeller(req.user!.id);
-        }
-        
-        // Filtrar por CNPJ e número
-        const filteredQuotation = quotations.find(q => 
-          q.clientCnpj === clientCnpj && q.number === number
+        const quotation = await storage.getQuotationByClientCnpjAndNumber(
+          clientCnpj as string, 
+          number as string
         );
         
-        if (!filteredQuotation) {
+        if (!quotation) {
           return res.status(404).json({ message: "Cotação não encontrada" });
         }
         
-        return res.json(filteredQuotation);
+        // Verificar se o usuário tem acesso a esta cotação
+        if (!req.user!.isAdmin && quotation.sellerId !== req.user!.id) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+        
+        return res.json(quotation);
       }
       
       // Busca normal - todas as cotações do usuário
@@ -394,38 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Buscar cotação por CNPJ e número via POST
-  app.post("/api/quotations/search", authenticateFlexible, async (req, res) => {
-    try {
-      const { clientCnpj, number } = req.body;
-      
-      if (!clientCnpj || !number) {
-        return res.status(400).json({ message: "CNPJ do cliente e número da cotação são obrigatórios" });
-      }
-      
-      let quotations;
-      
-      if (req.user!.isAdmin) {
-        quotations = await storage.getAllQuotations();
-      } else {
-        quotations = await storage.getQuotationsBySeller(req.user!.id);
-      }
-      
-      // Filtrar por CNPJ e número
-      const filteredQuotation = quotations.find(q => 
-        q.clientCnpj === clientCnpj && q.number === number
-      );
-      
-      if (!filteredQuotation) {
-        return res.status(404).json({ message: "Cotação não encontrada" });
-      }
-      
-      res.json(filteredQuotation);
-    } catch (error) {
-      console.error("Search quotation error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+
 
   app.get("/api/quotations/:id", authenticateFlexible, async (req, res) => {
     try {

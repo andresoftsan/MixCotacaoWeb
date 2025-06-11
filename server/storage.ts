@@ -15,6 +15,7 @@ export interface IStorage {
   getQuotation(id: number): Promise<Quotation | undefined>;
   getQuotationsBySeller(sellerId: number): Promise<Quotation[]>;
   getAllQuotations(): Promise<Quotation[]>;
+  getQuotationByClientCnpjAndNumber(clientCnpj: string, number: string): Promise<Quotation | undefined>;
   createQuotation(quotation: InsertQuotation): Promise<Quotation>;
   updateQuotation(id: number, quotation: Partial<InsertQuotation>): Promise<Quotation | undefined>;
   deleteQuotation(id: number): Promise<boolean>;
@@ -106,6 +107,16 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(quotations)
       .orderBy(desc(quotations.createdAt));
+  }
+
+  async getQuotationByClientCnpjAndNumber(clientCnpj: string, number: string): Promise<Quotation | undefined> {
+    await this.updateExpiredQuotations();
+    
+    const [quotation] = await db
+      .select()
+      .from(quotations)
+      .where(and(eq(quotations.clientCnpj, clientCnpj), eq(quotations.number, number)));
+    return quotation || undefined;
   }
 
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
