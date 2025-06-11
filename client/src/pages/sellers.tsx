@@ -79,6 +79,88 @@ export default function SellersPage() {
     setSelectedSeller(null);
   };
 
+  const handleSearchByEmail = async () => {
+    if (!searchEmail.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite um e-mail para buscar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/sellers?email=${encodeURIComponent(searchEmail.trim())}`);
+      if (response.ok) {
+        const seller = await response.json();
+        setSearchResult(seller);
+      } else if (response.status === 404) {
+        setSearchResult(null);
+        toast({
+          title: "Vendedor não encontrado",
+          description: "Nenhum vendedor encontrado com este e-mail.",
+        });
+      } else {
+        throw new Error("Erro na busca");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar vendedor por e-mail.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchByName = async () => {
+    if (!searchName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite um nome para buscar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/sellers?name=${encodeURIComponent(searchName.trim())}`);
+      if (response.ok) {
+        const sellers = await response.json();
+        setSearchResult(sellers);
+      } else if (response.status === 404) {
+        setSearchResult(null);
+        toast({
+          title: "Vendedores não encontrados",
+          description: "Nenhum vendedor encontrado com este nome.",
+        });
+      } else {
+        throw new Error("Erro na busca");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar vendedores por nome.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchEmail("");
+    setSearchName("");
+    setSearchResult(null);
+  };
+
+  const displayedSellers = searchResult 
+    ? (Array.isArray(searchResult) ? searchResult : [searchResult])
+    : sellers || [];
+
   const getStatusBadge = (status: string) => {
     const baseClasses = "status-badge";
     return status === "Ativo" 
@@ -116,6 +198,76 @@ export default function SellersPage() {
         </Button>
       </div>
 
+      {/* Search Section */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search-email">Buscar por E-mail</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="search-email"
+                  type="email"
+                  placeholder="Digite o e-mail..."
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchByEmail()}
+                />
+                <Button 
+                  onClick={handleSearchByEmail} 
+                  disabled={isSearching}
+                  size="sm"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="search-name">Buscar por Nome</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="search-name"
+                  placeholder="Digite o nome..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchByName()}
+                />
+                <Button 
+                  onClick={handleSearchByName} 
+                  disabled={isSearching}
+                  size="sm"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-end">
+              <Button 
+                onClick={handleClearSearch} 
+                variant="outline"
+                disabled={!searchEmail && !searchName && !searchResult}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Limpar Busca
+              </Button>
+            </div>
+          </div>
+          
+          {searchResult && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-md">
+              <p className="text-sm text-blue-700">
+                {Array.isArray(searchResult) 
+                  ? `${searchResult.length} vendedor(es) encontrado(s)` 
+                  : "1 vendedor encontrado"
+                }
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -136,7 +288,7 @@ export default function SellersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sellers?.map((seller) => (
+                  displayedSellers.map((seller) => (
                     <TableRow key={seller.id}>
                       <TableCell className="font-medium">
                         {seller.name}
