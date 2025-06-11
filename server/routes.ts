@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/sellers", requireAdmin, async (req, res) => {
+  app.post("/api/sellers", authenticateFlexible, requireAdmin, async (req, res) => {
     try {
       const sellerData = insertSellerSchema.parse(req.body);
       
@@ -293,14 +293,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quotations routes
-  app.get("/api/quotations", requireAuth, async (req, res) => {
+  app.get("/api/quotations", authenticateFlexible, async (req, res) => {
     try {
       let quotations;
       
-      if (req.session.isAdmin) {
+      if (req.user!.isAdmin) {
         quotations = await storage.getAllQuotations();
       } else {
-        quotations = await storage.getQuotationsBySeller(req.session.userId!);
+        quotations = await storage.getQuotationsBySeller(req.user!.id);
       }
 
       res.json(quotations);
