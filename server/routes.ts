@@ -204,19 +204,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get current user
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
+  app.get("/api/auth/me", authenticateFlexible, async (req, res) => {
     try {
-      const seller = await storage.getSeller(req.session.userId!);
-      if (!seller) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      res.json({
-        id: seller.id,
-        name: seller.name,
-        email: seller.email,
-        isAdmin: seller.email === "administrador@softsan.com.br"
-      });
+      res.json(req.user);
     } catch (error) {
       console.error("Get user error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -224,12 +214,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Sellers routes
-  app.get("/api/sellers", requireAuth, async (req, res) => {
+  app.get("/api/sellers", authenticateFlexible, requireAdmin, async (req, res) => {
     try {
-      if (!req.session.isAdmin) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-      
       const sellers = await storage.getAllSellers();
       res.json(sellers.map(seller => ({
         ...seller,
