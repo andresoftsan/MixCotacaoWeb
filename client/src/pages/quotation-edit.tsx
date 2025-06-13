@@ -138,9 +138,13 @@ export default function QuotationEditPage() {
         variant: "destructive",
       });
     },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: [`/api/quotations/${quotationId}/items`] });
+    onSuccess: (updatedItem) => {
+      // Update local state without refetching to maintain order
+      setItems(prevItems => 
+        prevItems.map(item => 
+          item.id === updatedItem.id ? updatedItem : item
+        )
+      );
     },
   });
 
