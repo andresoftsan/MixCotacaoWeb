@@ -167,8 +167,10 @@ export default function QuotationEditPage() {
   });
 
   const validateQuotationBeforeSend = () => {
+    const errors: string[] = [];
+    
     // Check for items with available quantity but missing or zero unit price
-    const invalidItems = items.filter(item => {
+    const itemsWithQuantityButNoPrice = items.filter(item => {
       const hasAvailableQuantity = item.availableQuantity !== null && item.availableQuantity !== undefined && item.availableQuantity > 0;
       
       // Check if price is missing, empty, or zero
@@ -189,11 +191,38 @@ export default function QuotationEditPage() {
       return hasAvailableQuantity && missingOrZeroPrice;
     });
 
-    if (invalidItems.length > 0) {
-      const itemDetails = invalidItems.map(item => `${item.productName} (Código: ${item.barcode})`).join(', ');
+    // Check for items with unit price but missing or zero available quantity
+    const itemsWithPriceButNoQuantity = items.filter(item => {
+      const hasValidPrice = item.unitPrice && item.unitPrice.trim() !== '';
+      let priceValue = 0;
+      if (hasValidPrice) {
+        try {
+          priceValue = parseFloat(item.unitPrice.replace(',', '.'));
+        } catch (e) {
+          return false;
+        }
+      }
+      
+      const hasPriceGreaterThanZero = !isNaN(priceValue) && priceValue > 0;
+      const missingOrZeroQuantity = item.availableQuantity === null || item.availableQuantity === undefined || item.availableQuantity === 0;
+      
+      return hasPriceGreaterThanZero && missingOrZeroQuantity;
+    });
+
+    if (itemsWithQuantityButNoPrice.length > 0) {
+      const itemDetails = itemsWithQuantityButNoPrice.map(item => `${item.productName} (${item.barcode})`).join(', ');
+      errors.push(`Itens com quantidade disponível mas sem preço: ${itemDetails}`);
+    }
+
+    if (itemsWithPriceButNoQuantity.length > 0) {
+      const itemDetails = itemsWithPriceButNoQuantity.map(item => `${item.productName} (${item.barcode})`).join(', ');
+      errors.push(`Itens com preço unitário mas sem quantidade disponível: ${itemDetails}`);
+    }
+
+    if (errors.length > 0) {
       toast({
         title: "Validação necessária",
-        description: `Os seguintes itens têm quantidade disponível mas estão sem preço unitário válido: ${itemDetails}`,
+        description: errors.join('. '),
         variant: "destructive",
       });
       return false;
