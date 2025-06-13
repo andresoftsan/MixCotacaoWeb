@@ -478,12 +478,15 @@ export default function QuotationEditPage() {
                     <TableCell>{item.quotedQuantity}</TableCell>
                     <TableCell>
                       <Input
-                        type="number"
-                        min="0"
-                        max={item.quotedQuantity}
-                        value={item.availableQuantity === null || item.availableQuantity === undefined ? '' : item.availableQuantity}
+                        type="text"
+                        value={item.availableQuantity === null || item.availableQuantity === undefined ? '' : item.availableQuantity.toString()}
                         onChange={(e) => {
                           const value = e.target.value;
+                          
+                          // Only allow numbers and empty string
+                          if (value !== '' && !/^\d+$/.test(value)) {
+                            return;
+                          }
                           
                           // Handle empty string as null, but allow "0" as valid
                           let numValue: number | null;
@@ -491,12 +494,11 @@ export default function QuotationEditPage() {
                             numValue = null;
                           } else {
                             const parsed = parseInt(value);
-                            numValue = isNaN(parsed) ? null : parsed;
-                          }
-                          
-                          // Validate: don't allow values greater than quoted quantity
-                          if (numValue !== null && numValue > item.quotedQuantity) {
-                            return; // Don't update if exceeds quoted quantity
+                            // Validate: don't allow values greater than quoted quantity
+                            if (parsed > item.quotedQuantity) {
+                              return; // Don't update if exceeds quoted quantity
+                            }
+                            numValue = parsed;
                           }
                           
                           handleItemChange(item.id, 'availableQuantity', numValue);
