@@ -170,14 +170,30 @@ export default function QuotationEditPage() {
     // Check for items with available quantity but missing or zero unit price
     const invalidItems = items.filter(item => {
       const hasAvailableQuantity = item.availableQuantity !== null && item.availableQuantity !== undefined && item.availableQuantity > 0;
-      const missingOrZeroPrice = !item.unitPrice || item.unitPrice.trim() === '' || parseFloat(item.unitPrice.replace(',', '.')) <= 0;
+      
+      // Check if price is missing, empty, or zero
+      let missingOrZeroPrice = false;
+      if (!item.unitPrice || item.unitPrice.trim() === '') {
+        missingOrZeroPrice = true;
+      } else {
+        try {
+          const priceValue = parseFloat(item.unitPrice.replace(',', '.'));
+          if (isNaN(priceValue) || priceValue <= 0) {
+            missingOrZeroPrice = true;
+          }
+        } catch (e) {
+          missingOrZeroPrice = true;
+        }
+      }
+      
       return hasAvailableQuantity && missingOrZeroPrice;
     });
 
     if (invalidItems.length > 0) {
+      const itemDetails = invalidItems.map(item => `${item.productName} (Código: ${item.barcode})`).join(', ');
       toast({
         title: "Validação necessária",
-        description: `Existem ${invalidItems.length} item(ns) com quantidade disponível preenchida mas sem preço unitário válido. Por favor, complete os preços antes de enviar.`,
+        description: `Os seguintes itens têm quantidade disponível mas estão sem preço unitário válido: ${itemDetails}`,
         variant: "destructive",
       });
       return false;
@@ -185,13 +201,18 @@ export default function QuotationEditPage() {
     return true;
   };
 
+  const handleSendQuotation = () => {
+    // Validate before sending
+    if (!validateQuotationBeforeSend()) {
+      return; // Stop execution if validation fails
+    }
+    
+    // If validation passes, proceed with sending
+    sendQuotationMutation.mutate();
+  };
+
   const sendQuotationMutation = useMutation({
     mutationFn: async () => {
-      // Validate before sending
-      if (!validateQuotationBeforeSend()) {
-        throw new Error('Validation failed');
-      }
-
       const response = await fetch(`/api/quotations/${quotationId}`, {
         method: "PUT",
         body: JSON.stringify({ status: "Enviada" }),
@@ -345,7 +366,7 @@ export default function QuotationEditPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Não</AlertDialogCancel>
-                <AlertDialogAction onClick={() => sendQuotationMutation.mutate()}>
+                <AlertDialogAction onClick={handleSendQuotation}>
                   Sim, Enviar
                 </AlertDialogAction>
               </AlertDialogFooter>
