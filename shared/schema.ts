@@ -65,6 +65,8 @@ export const insertQuotationSchema = createInsertSchema(quotations).omit({
 
 export const insertQuotationItemSchema = createInsertSchema(quotationItems).omit({
   id: true,
+}).extend({
+  validity: z.string().datetime().transform(str => new Date(str)).optional(),
 });
 
 export const updateQuotationItemSchema = createInsertSchema(quotationItems).omit({
