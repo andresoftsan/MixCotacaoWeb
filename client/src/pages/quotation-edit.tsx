@@ -206,12 +206,12 @@ export default function QuotationEditPage() {
         if (field === 'availableQuantity') {
           const quotedQty = item.quotedQuantity;
           
-          // Handle null/undefined as "Indisponível", allow 0 as valid quantity
+          // Handle null/undefined/0 as "Indisponível"
           if (value === null || value === undefined) {
             updatedItem.situation = 'Indisponível';
           } else {
             const availableQty = typeof value === 'number' ? value : parseInt(value as string);
-            if (isNaN(availableQty)) {
+            if (isNaN(availableQty) || availableQty === 0) {
               updatedItem.situation = 'Indisponível';
             } else if (availableQty >= quotedQty) {
               updatedItem.situation = 'Disponível';
