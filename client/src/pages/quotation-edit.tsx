@@ -73,15 +73,16 @@ export default function QuotationEditPage() {
     if (quotationItems) {
       // Initialize items with correct situation based on quantities
       const itemsWithCorrectSituation = quotationItems.map(item => {
-        const availableQty = item.availableQuantity || 0;
+        const availableQty = item.availableQuantity;
         const quotedQty = item.quotedQuantity;
         
         let situation = item.situation;
-        if (availableQty === 0 || !item.availableQuantity) {
+        // Only consider null/undefined as "Indisponível", allow 0 as valid quantity
+        if (availableQty === null || availableQty === undefined) {
           situation = 'Indisponível';
         } else if (availableQty >= quotedQty) {
           situation = 'Disponível';
-        } else if (availableQty < quotedQty && availableQty > 0) {
+        } else if (availableQty < quotedQty && availableQty >= 0) {
           situation = 'Parcial';
         }
         
@@ -203,14 +204,15 @@ export default function QuotationEditPage() {
         
         // Auto-update situation based on availableQuantity vs quotedQuantity
         if (field === 'availableQuantity') {
-          const availableQty = typeof value === 'number' ? value : parseInt(value as string) || 0;
+          const availableQty = typeof value === 'number' ? value : parseInt(value as string);
           const quotedQty = item.quotedQuantity;
           
-          if (availableQty === 0 || value === '' || value === null || value === undefined) {
+          // Only consider empty/null/undefined as "Indisponível", allow 0 as valid quantity
+          if (value === '' || value === null || value === undefined || isNaN(availableQty)) {
             updatedItem.situation = 'Indisponível';
           } else if (availableQty >= quotedQty) {
             updatedItem.situation = 'Disponível';
-          } else if (availableQty < quotedQty && availableQty > 0) {
+          } else if (availableQty < quotedQty && availableQty >= 0) {
             updatedItem.situation = 'Parcial';
           }
         }
