@@ -483,8 +483,8 @@ export default function QuotationEditPage() {
                         onChange={(e) => {
                           const value = e.target.value;
                           
-                          // Only allow numbers and empty string
-                          if (value !== '' && !/^\d+$/.test(value)) {
+                          // Only allow numbers (including 0) and empty string
+                          if (value !== '' && !/^\d*$/.test(value)) {
                             return;
                           }
                           
@@ -494,9 +494,9 @@ export default function QuotationEditPage() {
                             numValue = null;
                           } else {
                             const parsed = parseInt(value);
-                            // Validate: don't allow values greater than quoted quantity
-                            if (parsed > item.quotedQuantity) {
-                              return; // Don't update if exceeds quoted quantity
+                            // Check if parsed value is valid and not greater than quoted quantity
+                            if (isNaN(parsed) || parsed < 0 || parsed > item.quotedQuantity) {
+                              return; // Don't update if invalid
                             }
                             numValue = parsed;
                           }
