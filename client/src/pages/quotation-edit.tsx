@@ -210,8 +210,10 @@ export default function QuotationEditPage() {
           if (value === null || value === undefined) {
             updatedItem.situation = 'Indisponível';
           } else {
-            const availableQty = typeof value === 'number' ? value : parseInt(value as string) || 0;
-            if (availableQty >= quotedQty) {
+            const availableQty = typeof value === 'number' ? value : parseInt(value as string);
+            if (isNaN(availableQty)) {
+              updatedItem.situation = 'Indisponível';
+            } else if (availableQty >= quotedQty) {
               updatedItem.situation = 'Disponível';
             } else {
               updatedItem.situation = 'Parcial';
@@ -482,7 +484,15 @@ export default function QuotationEditPage() {
                         value={item.availableQuantity === null || item.availableQuantity === undefined ? '' : item.availableQuantity}
                         onChange={(e) => {
                           const value = e.target.value;
-                          const numValue = value === '' ? null : parseInt(value);
+                          
+                          // Handle empty string as null, but allow "0" as valid
+                          let numValue: number | null;
+                          if (value === '') {
+                            numValue = null;
+                          } else {
+                            const parsed = parseInt(value);
+                            numValue = isNaN(parsed) ? null : parsed;
+                          }
                           
                           // Validate: don't allow values greater than quoted quantity
                           if (numValue !== null && numValue > item.quotedQuantity) {
