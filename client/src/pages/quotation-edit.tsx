@@ -197,23 +197,25 @@ export default function QuotationEditPage() {
     },
   });
 
-  const handleItemChange = (itemId: number, field: string, value: string | number | undefined) => {
+  const handleItemChange = (itemId: number, field: string, value: string | number | null | undefined) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
         const updatedItem = { ...item, [field]: value };
         
         // Auto-update situation based on availableQuantity vs quotedQuantity
         if (field === 'availableQuantity') {
-          const availableQty = typeof value === 'number' ? value : parseInt(value as string);
           const quotedQty = item.quotedQuantity;
           
-          // Only consider empty/null/undefined as "Indisponível", allow 0 as valid quantity
-          if (value === '' || value === null || value === undefined || isNaN(availableQty)) {
+          // Handle null/undefined as "Indisponível", allow 0 as valid quantity
+          if (value === null || value === undefined) {
             updatedItem.situation = 'Indisponível';
-          } else if (availableQty >= quotedQty) {
-            updatedItem.situation = 'Disponível';
-          } else if (availableQty < quotedQty && availableQty >= 0) {
-            updatedItem.situation = 'Parcial';
+          } else {
+            const availableQty = typeof value === 'number' ? value : parseInt(value as string) || 0;
+            if (availableQty >= quotedQty) {
+              updatedItem.situation = 'Disponível';
+            } else {
+              updatedItem.situation = 'Parcial';
+            }
           }
         }
         
@@ -475,8 +477,20 @@ export default function QuotationEditPage() {
                     <TableCell>
                       <Input
                         type="number"
-                        value={item.availableQuantity || ''}
-                        onChange={(e) => handleItemChange(item.id, 'availableQuantity', e.target.value ? parseInt(e.target.value) : 0)}
+                        min="0"
+                        max={item.quotedQuantity}
+                        value={item.availableQuantity === null || item.availableQuantity === undefined ? '' : item.availableQuantity}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value === '' ? null : parseInt(value);
+                          
+                          // Validate: don't allow values greater than quoted quantity
+                          if (numValue !== null && numValue > item.quotedQuantity) {
+                            return; // Don't update if exceeds quoted quantity
+                          }
+                          
+                          handleItemChange(item.id, 'availableQuantity', numValue);
+                        }}
                         placeholder="Quantidade"
                         className="w-24"
                         disabled={!isEditable}
