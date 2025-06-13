@@ -399,18 +399,19 @@ export default function QuotationEditPage() {
           )}
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código de Barras</TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead>Qtd. Solicitada</TableHead>
-                <TableHead>Qtd. Disponível</TableHead>
-                <TableHead>Preço Unitário</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead>Situação</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">Código de Barras</TableHead>
+                  <TableHead className="min-w-[250px]">Produto</TableHead>
+                  <TableHead className="min-w-[100px]">Qtd. Solicitada</TableHead>
+                  <TableHead className="min-w-[120px]">Qtd. Disponível</TableHead>
+                  <TableHead className="min-w-[110px]">Preço Unitário</TableHead>
+                  <TableHead className="min-w-[120px]">Validade</TableHead>
+                  <TableHead className="min-w-[120px]">Situação</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {currentItems.length === 0 ? (
                 <TableRow>
@@ -422,8 +423,8 @@ export default function QuotationEditPage() {
                 currentItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-mono text-sm">{item.barcode}</TableCell>
-                    <TableCell className="max-w-[200px]">
-                      <div className="truncate" title={item.productName}>
+                    <TableCell className="min-w-[250px] max-w-[400px]">
+                      <div className="whitespace-normal break-words text-sm leading-tight">
                         {item.productName}
                       </div>
                     </TableCell>
@@ -480,7 +481,8 @@ export default function QuotationEditPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
