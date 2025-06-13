@@ -71,7 +71,24 @@ export default function QuotationEditPage() {
 
   useEffect(() => {
     if (quotationItems) {
-      setItems(quotationItems);
+      // Initialize items with correct situation based on quantities
+      const itemsWithCorrectSituation = quotationItems.map(item => {
+        const availableQty = item.availableQuantity || 0;
+        const quotedQty = item.quotedQuantity;
+        
+        let situation = item.situation;
+        if (availableQty === 0 || !item.availableQuantity) {
+          situation = 'Indisponível';
+        } else if (availableQty >= quotedQty) {
+          situation = 'Disponível';
+        } else if (availableQty < quotedQty && availableQty > 0) {
+          situation = 'Parcial';
+        }
+        
+        return { ...item, situation };
+      });
+      
+      setItems(itemsWithCorrectSituation);
     }
   }, [quotationItems]);
 
@@ -180,9 +197,29 @@ export default function QuotationEditPage() {
   });
 
   const handleItemChange = (itemId: number, field: string, value: string | number | undefined) => {
-    const updatedItems = items.map(item =>
-      item.id === itemId ? { ...item, [field]: value } : item
-    );
+    const updatedItems = items.map(item => {
+      if (item.id === itemId) {
+        const updatedItem = { ...item, [field]: value };
+        
+        // Auto-update situation based on availableQuantity vs quotedQuantity
+        if (field === 'availableQuantity') {
+          const availableQty = typeof value === 'number' ? value : parseInt(value as string) || 0;
+          const quotedQty = item.quotedQuantity;
+          
+          if (availableQty === 0 || value === '' || value === null || value === undefined) {
+            updatedItem.situation = 'Indisponível';
+          } else if (availableQty >= quotedQty) {
+            updatedItem.situation = 'Disponível';
+          } else if (availableQty < quotedQty && availableQty > 0) {
+            updatedItem.situation = 'Parcial';
+          }
+        }
+        
+        return updatedItem;
+      }
+      return item;
+    });
+    
     setItems(updatedItems);
     
     // Clear existing timeout for this item
