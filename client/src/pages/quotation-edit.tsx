@@ -174,33 +174,34 @@ export default function QuotationEditPage() {
       const hasAvailableQuantity = item.availableQuantity !== null && item.availableQuantity !== undefined && item.availableQuantity > 0;
       
       // Check if price is missing, empty, or zero
-      let missingOrZeroPrice = false;
+      let invalidPrice = false;
       if (!item.unitPrice || item.unitPrice.trim() === '') {
-        missingOrZeroPrice = true;
+        invalidPrice = true;
       } else {
         try {
           const priceValue = parseFloat(item.unitPrice.replace(',', '.'));
           if (isNaN(priceValue) || priceValue <= 0) {
-            missingOrZeroPrice = true;
+            invalidPrice = true;
           }
         } catch (e) {
-          missingOrZeroPrice = true;
+          invalidPrice = true;
         }
       }
       
-      return hasAvailableQuantity && missingOrZeroPrice;
+      return hasAvailableQuantity && invalidPrice;
     });
 
     // Check for items with unit price but missing or zero available quantity
     const itemsWithPriceButNoQuantity = items.filter(item => {
-      const hasValidPrice = item.unitPrice && item.unitPrice.trim() !== '';
+      if (!item.unitPrice || item.unitPrice.trim() === '') {
+        return false;
+      }
+      
       let priceValue = 0;
-      if (hasValidPrice) {
-        try {
-          priceValue = parseFloat(item.unitPrice.replace(',', '.'));
-        } catch (e) {
-          return false;
-        }
+      try {
+        priceValue = parseFloat(item.unitPrice.replace(',', '.'));
+      } catch (e) {
+        return false;
       }
       
       const hasPriceGreaterThanZero = !isNaN(priceValue) && priceValue > 0;
@@ -211,7 +212,7 @@ export default function QuotationEditPage() {
 
     if (itemsWithQuantityButNoPrice.length > 0) {
       const itemDetails = itemsWithQuantityButNoPrice.map(item => `${item.productName} (${item.barcode})`).join(', ');
-      errors.push(`Itens com quantidade disponível mas sem preço: ${itemDetails}`);
+      errors.push(`Itens com quantidade disponível mas sem preço unitário válido (maior que zero): ${itemDetails}`);
     }
 
     if (itemsWithPriceButNoQuantity.length > 0) {
