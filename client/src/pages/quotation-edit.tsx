@@ -259,7 +259,7 @@ export default function QuotationEditPage() {
     const normalizedPrice = item.unitPrice ? item.unitPrice.replace(',', '.') : undefined;
     
     const updateData = {
-      availableQuantity: item.availableQuantity || undefined,
+      availableQuantity: item.availableQuantity === null ? null : item.availableQuantity,
       unitPrice: normalizedPrice,
       validity: item.validity || undefined,
       situation: item.situation || undefined,
