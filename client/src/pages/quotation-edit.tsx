@@ -166,8 +166,32 @@ export default function QuotationEditPage() {
     },
   });
 
+  const validateQuotationBeforeSend = () => {
+    // Check for items with available quantity but missing or zero unit price
+    const invalidItems = items.filter(item => {
+      const hasAvailableQuantity = item.availableQuantity !== null && item.availableQuantity !== undefined && item.availableQuantity > 0;
+      const missingOrZeroPrice = !item.unitPrice || item.unitPrice.trim() === '' || parseFloat(item.unitPrice.replace(',', '.')) <= 0;
+      return hasAvailableQuantity && missingOrZeroPrice;
+    });
+
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Validação necessária",
+        description: `Existem ${invalidItems.length} item(ns) com quantidade disponível preenchida mas sem preço unitário válido. Por favor, complete os preços antes de enviar.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const sendQuotationMutation = useMutation({
     mutationFn: async () => {
+      // Validate before sending
+      if (!validateQuotationBeforeSend()) {
+        throw new Error('Validation failed');
+      }
+
       const response = await fetch(`/api/quotations/${quotationId}`, {
         method: "PUT",
         body: JSON.stringify({ status: "Enviada" }),
@@ -531,20 +555,13 @@ export default function QuotationEditPage() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={item.situation || ''}
-                        onValueChange={(value) => handleItemChange(item.id, 'situation', value)}
-                        disabled={!isEditable}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Situação" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Disponível">Disponível</SelectItem>
-                          <SelectItem value="Parcial">Parcial</SelectItem>
-                          <SelectItem value="Indisponível">Indisponível</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.situation === 'Disponível' ? 'bg-green-100 text-green-800' :
+                        item.situation === 'Parcial' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {item.situation || 'Indisponível'}
+                      </span>
                     </TableCell>
                   </TableRow>
                 ))
