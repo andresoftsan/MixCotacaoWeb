@@ -521,6 +521,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/quotations/:id", authenticateFlexible, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+
+      const existingQuotation = await storage.getQuotation(id);
+      if (!existingQuotation) {
+        return res.status(404).json({ message: "Cotação não encontrada" });
+      }
+
+      // Check if user can delete this quotation
+      if (!req.user?.isAdmin && existingQuotation.sellerId !== req.user?.id) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Only allow deletion if quotation is not sent yet
+      if (existingQuotation.status === "Enviada") {
+        return res.status(400).json({ message: "Não é possível deletar cotações já enviadas" });
+      }
+
+      const deleted = await storage.deleteQuotation(id);
+      if (deleted) {
+        res.json({ message: "Cotação e todos os itens foram deletados com sucesso" });
+      } else {
+        res.status(500).json({ message: "Erro ao deletar cotação" });
+      }
+    } catch (error) {
+      console.error("Delete quotation error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Quotation items routes
   app.get("/api/quotations/:id/items", authenticateFlexible, async (req, res) => {
     try {
