@@ -477,12 +477,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quotations", authenticateFlexible, async (req, res) => {
     try {
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
       const quotationData = insertQuotationSchema.parse(req.body);
+      console.log("Parsed quotation data:", JSON.stringify(quotationData, null, 2));
       
       // Generate quotation number
       const year = new Date().getUTCFullYear();
       const allQuotations = await storage.getAllQuotations();
-      const nextNumber = allQuotations.length + 1;
+      
+      // Find the highest number for this year
+      const yearPrefix = `COT-${year}-`;
+      const existingNumbers = allQuotations
+        .filter(q => q.number.startsWith(yearPrefix))
+        .map(q => parseInt(q.number.split('-')[2]))
+        .filter(n => !isNaN(n));
+      
+      const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
       const number = `COT-${year}-${String(nextNumber).padStart(3, '0')}`;
 
       const quotation = await storage.createQuotation({
@@ -494,7 +504,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(quotation);
     } catch (error) {
       console.error("Create quotation error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
+      });
+      res.status(500).json({ 
+        message: "Erro interno do servidor",
+        error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined
+      });
     }
   });
 
