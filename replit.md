@@ -115,8 +115,45 @@ Mix Cotação Web is a comprehensive quotation management system built with Reac
 - Support for external PostgreSQL databases
 - Comprehensive setup scripts provided
 
+## Deployment Configuration
+
+### AWS Lightsail Production Setup
+The application is configured for deployment on AWS Lightsail Ubuntu 24.04 with:
+- PostgreSQL database on the same instance
+- Nginx as reverse proxy
+- PM2 for process management
+- SSL support via Certbot
+- Automated backup and monitoring scripts
+
+### Deployment Files
+- `AWS_LIGHTSAIL_DEPLOY_GUIDE.md`: Complete deployment tutorial
+- `install-lightsail.sh`: Automated installation script
+- `production.config.js`: PM2 production configuration
+
+### Key Features for Production
+- Automatic database migrations via `npm run db:push`
+- Health checks and auto-restart capabilities
+- Log rotation and backup scheduling
+- Firewall and security configurations
+- SSL certificate management
+
+## API Integration
+
+### Token Authentication
+The system supports API token authentication for external integrations:
+- Bearer token format: `Authorization: Bearer [token]`
+- Tokens managed per seller in the database
+- Full CRUD operations available via API endpoints
+
+### Fixed Issues
+- Quotation numbering: Resolved duplicate number generation by implementing proper sequential numbering
+- API authentication: Confirmed working with proper Bearer token headers
+- Database connectivity: Stable connection with comprehensive error logging
+
 ## Changelog
-- June 17, 2025. Initial setup
+- June 17, 2025: Initial setup and core functionality
+- June 17, 2025: Fixed API quotation creation and numbering system
+- June 17, 2025: Added comprehensive AWS Lightsail deployment configuration
 
 ## User Preferences
 
