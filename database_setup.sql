@@ -1,47 +1,77 @@
--- Script de configuração inicial do banco de dados
--- Mix Cotação Web - Usuário Administrador
+-- ===============================================
+-- Mix Cotação Web - Setup Usuário Administrador
+-- Tabela: sellers (usuários do sistema)
 -- Data: 2025-06-17
+-- ===============================================
 
--- Inserir usuário administrador
+-- Limpar dados anteriores se necessário (descomente se precisar)
+-- DELETE FROM sellers WHERE email IN ('administrador@softsan.com.br', 'teste@softsan.com.br');
+
+-- Inserir usuário administrador principal
 INSERT INTO sellers (
-    name, 
     email, 
+    name, 
     password, 
-    status, 
-    created_at
+    status
 ) VALUES (
-    'Administrador',
     'administrador@softsan.com.br',
-    '$2b$10$8K1p/a0dLszKT6Q2.SwQNOPjdHCJsm7k1WjHCXKjHsF8yPsRQWZeK', -- M1xgestao@2025
-    'Ativo',
-    NOW()
-) ON CONFLICT (email) DO NOTHING;
+    'Administrador',
+    '$2b$10$8K1p/a0dLszKT6Q2.SwQNOPjdHCJsm7k1WjHCXKjHsF8yPsRQWZeK',
+    'Ativo'
+) ON CONFLICT (email) DO UPDATE SET
+    name = EXCLUDED.name,
+    password = EXCLUDED.password,
+    status = EXCLUDED.status;
 
--- Verificar se o usuário foi criado
-SELECT id, name, email, status, created_at 
-FROM sellers 
-WHERE email = 'administrador@softsan.com.br';
-
--- Criar usuário de teste não-admin (opcional)
+-- Inserir usuário de teste (opcional)
 INSERT INTO sellers (
-    name, 
     email, 
+    name, 
     password, 
-    status, 
-    created_at
+    status
 ) VALUES (
-    'Usuario Teste',
     'teste@softsan.com.br',
-    '$2b$10$K1p/a0dLszKT6Q2.SwQNOPjdHCJsm7k1WjHCXKjHsF8yPsRQWZeK', -- 123456
-    'Ativo',
-    NOW()
-) ON CONFLICT (email) DO NOTHING;
+    'Usuario Teste',
+    '$2b$10$K1p/a0dLszKT6Q2.SwQNOPjdHCJsm7k1WjHCXKjHsF8yPsRQWZeK',
+    'Ativo'
+) ON CONFLICT (email) DO UPDATE SET
+    name = EXCLUDED.name,
+    password = EXCLUDED.password,
+    status = EXCLUDED.status;
 
--- Mostrar todos os usuários criados
-SELECT id, name, email, status, created_at 
+-- Verificar usuários criados
+SELECT 
+    id, 
+    email, 
+    name, 
+    status, 
+    created_at,
+    CASE 
+        WHEN email = 'administrador@softsan.com.br' THEN 'ADMINISTRADOR'
+        ELSE 'VENDEDOR'
+    END as tipo_usuario
 FROM sellers 
-ORDER BY created_at;
+WHERE email IN ('administrador@softsan.com.br', 'teste@softsan.com.br')
+ORDER BY id;
 
--- Informações sobre as senhas:
--- Administrador: M1xgestao@2025 (privilégios admin por email)
--- Teste: 123456 (vendedor comum)
+-- Mostrar estatísticas
+SELECT 
+    COUNT(*) as total_usuarios,
+    COUNT(CASE WHEN email = 'administrador@softsan.com.br' THEN 1 END) as admins,
+    COUNT(CASE WHEN email != 'administrador@softsan.com.br' THEN 1 END) as vendedores,
+    COUNT(CASE WHEN status = 'Ativo' THEN 1 END) as ativos
+FROM sellers;
+
+-- ===============================================
+-- CREDENCIAIS DE ACESSO:
+-- 
+-- ADMINISTRADOR:
+--   Email: administrador@softsan.com.br
+--   Senha: M1xgestao@2025
+--   Tipo: Admin (identificado pelo email)
+--
+-- TESTE:
+--   Email: teste@softsan.com.br  
+--   Senha: 123456
+--   Tipo: Vendedor comum
+-- ===============================================
