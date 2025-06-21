@@ -84,6 +84,20 @@ sudo nano /etc/postgresql/16/main/pg_hba.conf
 sudo systemctl restart postgresql
 ```
 
+### ⚠️ IMPORTANTE: Configuração de Produção
+**Para produção, você pode usar PostgreSQL local OU Neon Database:**
+
+**Opção A - PostgreSQL Local (Recomendado para Lightsail):**
+```env
+DATABASE_URL=postgresql://mixuser:sua_senha@localhost:5432/mixcotacao
+```
+
+**Opção B - Neon Database (Cloud):**
+Se preferir usar Neon Database, substitua a URL local pela URL do Neon:
+```env
+DATABASE_URL=postgresql://username:password@ep-nome-projeto.us-east-1.aws.neon.tech/neondb?sslmode=require
+```
+
 ### 3.4 Testar Conexão
 ```bash
 psql -U mixuser -d mixcotacao -h localhost

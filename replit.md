@@ -149,6 +149,7 @@ The system supports API token authentication for external integrations:
 - Quotation numbering: Resolved duplicate number generation by implementing proper sequential numbering
 - API authentication: Confirmed working with proper Bearer token headers
 - Database connectivity: Stable connection with comprehensive error logging
+- AWS Production SSL Certificate Error: Created troubleshooting scripts and guides for DATABASE_URL configuration conflicts
 
 ## Changelog
 - June 17, 2025: Initial setup and core functionality
