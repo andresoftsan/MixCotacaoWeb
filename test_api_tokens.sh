@@ -46,7 +46,6 @@ curl -s -X POST \
      -H "Authorization: Bearer $API_KEY" \
      -H "Content-Type: application/json" \
      -d '{
-       "number": "API-TEST-001",
        "date": "2025-06-21",
        "deadline": "2025-06-25",
        "supplierCnpj": "12.345.678/0001-90",

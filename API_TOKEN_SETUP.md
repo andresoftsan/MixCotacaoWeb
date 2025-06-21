@@ -32,16 +32,18 @@ curl -X POST \
      -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
      -H "Content-Type: application/json" \
      -d '{
-       "number": "API-TEST-001",
        "date": "2025-06-21",
        "deadline": "2025-06-25",
        "supplierCnpj": "12.345.678/0001-90",
        "supplierName": "Fornecedor Teste",
        "clientCnpj": "98.765.432/0001-10",
-       "clientName": "Cliente Teste"
+       "clientName": "Cliente Teste",
+       "internalObservation": "Cotação via API"
      }' \
      http://localhost:5000/api/quotations
 ```
+
+**Nota:** O `sellerId` é atribuído automaticamente baseado no token de autenticação. O `number` é gerado automaticamente.
 
 **3. Buscar Cotações**
 ```bash

@@ -498,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quotation = await storage.createQuotation({
         ...quotationData,
         number,
-        sellerId: quotationData.sellerId
+        sellerId: quotationData.sellerId || req.user!.id // Usar sellerId do body ou do usuário autenticado
       });
 
       res.json(quotation);

@@ -60,6 +60,7 @@ export const insertQuotationSchema = createInsertSchema(quotations).omit({
   date: z.string().transform(str => new Date(str)),
   deadline: z.string().transform(str => new Date(str)),
   number: z.string().optional(),
+  sellerId: z.number().optional(), // Opcional para permitir atribuição automática
 });
 
 export const insertQuotationItemSchema = createInsertSchema(quotationItems).omit({

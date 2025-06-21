@@ -1,285 +1,175 @@
-# Exemplos Práticos - Tokens API Mix Cotação Web
+# Exemplos de Uso da API - Mix Cotação Web
 
-## Token Fixo Configurado
-
-**Token de Teste Ativo:**
+## Token Configurado
 ```
-mxc_test123456789012345678901234567890
+mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
 ```
 
-**Usuário Associado:** Administrador (acesso total)
+## Exemplos Práticos
 
-## Exemplos de Uso
-
-### 1. Listar Vendedores
+### 1. Listar Todas as Cotações
 ```bash
-curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
-     http://localhost:5000/api/sellers
-```
-
-**Resposta:**
-```json
-[
-  {
-    "id": 1,
-    "email": "administrador",
-    "name": "Administrador",
-    "status": "Ativo",
-    "createdAt": "2025-06-10T14:46:13.949Z"
-  },
-  {
-    "id": 2,
-    "email": "administrador@softsan.com.br",
-    "name": "Administrador",
-    "status": "Ativo",
-    "createdAt": "2025-06-10T14:52:58.120Z"
-  }
-]
-```
-
-### 1.1. Buscar Vendedor por E-mail
-```bash
-curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
-     "http://localhost:5000/api/sellers?email=administrador%40softsan.com.br"
-```
-
-**Resposta:**
-```json
-{
-  "id": 2,
-  "email": "administrador@softsan.com.br",
-  "name": "Administrador",
-  "status": "Ativo",
-  "createdAt": "2025-06-10T14:52:58.120Z"
-}
-```
-
-**Nota:** O caractere `@` deve ser codificado como `%40` na URL.
-
-### 2. Verificar Usuário Logado
-```bash
-curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
-     http://localhost:5000/api/auth/me
-```
-
-**Resposta:**
-```json
-{
-  "id": 2,
-  "name": "Administrador",
-  "email": "administrador@softsan.com.br",
-  "isAdmin": true
-}
-```
-
-### 3. Listar Cotações
-```bash
-curl -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
      http://localhost:5000/api/quotations
 ```
 
-### 4. Criar Nova Cotação
+### 2. Buscar Cotações por Cliente
+```bash
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     "http://localhost:5000/api/quotations?search=PAULO%20FERNANDO"
+```
+
+### 3. Criar Nova Cotação
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "number": "COT-2025-API-001",
-    "deadline": "2025-01-30T23:59:59.000Z",
-    "supplierCnpj": "12.345.678/0001-90",
-    "supplierName": "API Fornecedor Ltda",
-    "clientCnpj": "98.765.432/0001-10",
-    "clientName": "API Cliente S/A",
-    "sellerId": 2
-  }' \
-  http://localhost:5000/api/quotations
+     -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "date": "2025-06-21",
+       "deadline": "2025-06-28",
+       "supplierCnpj": "12.345.678/0001-90",
+       "supplierName": "Distribuidora Exemplo Ltda",
+       "clientCnpj": "98.765.432/0001-10",
+       "clientName": "Supermercado Cliente SA",
+       "internalObservation": "Solicitação de produtos básicos"
+     }' \
+     http://localhost:5000/api/quotations
 ```
 
-## Como Criar Seu Próprio Token
-
-### Opção 1: Via Banco de Dados (Direto)
-```sql
-INSERT INTO api_keys (name, key, seller_id, is_active) 
-VALUES ('Meu Token Personalizado', 'mxc_SEU_TOKEN_PERSONALIZADO_AQUI', 2, true);
-```
-
-### Opção 2: Via API (Programático)
+### 4. Buscar Cotação Específica
 ```bash
-# Primeiro faça login via sessão web, depois:
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     http://localhost:5000/api/quotations/1
+```
+
+### 5. Atualizar Cotação
+```bash
+curl -X PUT \
+     -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "status": "Enviada",
+       "internalObservation": "Cotação enviada para o cliente"
+     }' \
+     http://localhost:5000/api/quotations/1
+```
+
+### 6. Adicionar Item à Cotação
+```bash
 curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Token Integração ERP"}' \
-  http://localhost:5000/api/api-keys
+     -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "barcode": "7891234567890",
+       "productName": "Produto Exemplo 500g",
+       "quotedQuantity": 100,
+       "availableQuantity": 80,
+       "unitPrice": "15.50",
+       "validity": "2025-07-01T23:59:59.000Z",
+       "situation": "Disponível"
+     }' \
+     http://localhost:5000/api/quotations/1/items
 ```
 
-### Opção 3: Gerar Token Seguro
+### 7. Listar Itens de uma Cotação
 ```bash
-# Gerar token aleatório
-TOKEN="mxc_$(openssl rand -hex 32)"
-echo "Novo token: $TOKEN"
-
-# Inserir no banco
-psql -d mixcotacao -c "INSERT INTO api_keys (name, key, seller_id) VALUES ('Token Produção', '$TOKEN', 2);"
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     http://localhost:5000/api/quotations/1/items
 ```
 
-## Integração com Sistemas Externos
-
-### Node.js
-```javascript
-const axios = require('axios');
-
-const api = axios.create({
-  baseURL: 'http://localhost:5000',
-  headers: {
-    'Authorization': 'Bearer mxc_test123456789012345678901234567890',
-    'Content-Type': 'application/json'
-  }
-});
-
-// Buscar cotações
-async function getCotacoes() {
-  const response = await api.get('/api/quotations');
-  return response.data;
-}
-
-// Criar cotação
-async function criarCotacao(dados) {
-  const response = await api.post('/api/quotations', dados);
-  return response.data;
-}
-```
-
-### Python
-```python
-import requests
-
-headers = {
-    'Authorization': 'Bearer mxc_test123456789012345678901234567890',
-    'Content-Type': 'application/json'
-}
-
-# Buscar vendedores
-response = requests.get('http://localhost:5000/api/sellers', headers=headers)
-vendedores = response.json()
-
-# Criar cotação
-cotacao_data = {
-    "number": "COT-2025-PYTHON-001",
-    "deadline": "2025-01-30T23:59:59.000Z",
-    "supplierCnpj": "11.222.333/0001-44",
-    "supplierName": "Python Fornecedor",
-    "clientCnpj": "55.666.777/0001-88",
-    "clientName": "Python Cliente",
-    "sellerId": 2
-}
-
-response = requests.post('http://localhost:5000/api/quotations', 
-                        json=cotacao_data, 
-                        headers=headers)
-nova_cotacao = response.json()
-```
-
-### PHP
-```php
-<?php
-$token = 'mxc_test123456789012345678901234567890';
-$headers = [
-    'Authorization: Bearer ' . $token,
-    'Content-Type: application/json'
-];
-
-// Buscar cotações
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'http://localhost:5000/api/quotations');
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$cotacoes = json_decode(curl_exec($ch), true);
-curl_close($ch);
-
-echo "Total de cotações: " . count($cotacoes);
-?>
-```
-
-## Segurança e Boas Práticas
-
-### Configuração de Ambiente
+### 8. Atualizar Item de Cotação
 ```bash
-# .env
-MIX_COTACAO_TOKEN=mxc_test123456789012345678901234567890
-MIX_COTACAO_URL=http://localhost:5000
+curl -X PUT \
+     -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "availableQuantity": 90,
+       "unitPrice": "14.80",
+       "situation": "Disponível"
+     }' \
+     http://localhost:5000/api/quotation-items/1
 ```
 
-### Verificação de Token
+### 9. Estatísticas do Dashboard
 ```bash
-# Testar se token está funcionando
-curl -f -H "Authorization: Bearer mxc_test123456789012345678901234567890" \
-     http://localhost:5000/api/auth/me && echo "Token OK" || echo "Token inválido"
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     http://localhost:5000/api/dashboard/stats
 ```
 
-### Monitoramento
-```sql
--- Verificar uso do token
-SELECT 
-  ak.name,
-  ak.last_used_at,
-  s.name as seller_name
-FROM api_keys ak
-JOIN sellers s ON ak.seller_id = s.id
-WHERE ak.key = 'mxc_test123456789012345678901234567890';
+### 10. Listar Vendedores (Admin apenas)
+```bash
+curl -H "Authorization: Bearer mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456" \
+     http://localhost:5000/api/sellers
 ```
 
-## Troubleshooting
+## Respostas da API
 
-### Token não funciona (401)
-- Verificar se token está ativo no banco
-- Confirmar formato correto: "Bearer mxc_..."
-- Validar se vendedor associado está ativo
+### Sucesso na Criação de Cotação
+```json
+{
+  "id": 17,
+  "number": "COT-2025-019",
+  "date": "2025-06-21T00:00:00.000Z",
+  "status": "Aguardando digitação",
+  "deadline": "2025-06-28T00:00:00.000Z",
+  "supplierCnpj": "12.345.678/0001-90",
+  "supplierName": "Distribuidora Exemplo Ltda",
+  "clientCnpj": "98.765.432/0001-10",
+  "clientName": "Supermercado Cliente SA",
+  "internalObservation": "Solicitação de produtos básicos",
+  "sellerId": 2,
+  "createdAt": "2025-06-21T17:45:00.000Z"
+}
+```
 
-### Acesso negado (403)
-- Verificar se vendedor tem permissões necessárias
-- Para `/api/sellers` precisa ser administrador
-- Vendedores comuns só acessam próprios dados
+### Erro de Autenticação
+```json
+{
+  "message": "Não autorizado"
+}
+```
 
-### Endpoint não encontrado (404)
-- Confirmar URL está correta
-- Verificar se servidor está rodando na porta 5000
-- Validar sintaxe da requisição
+### Erro de Validação
+```json
+{
+  "message": "Erro de validação",
+  "errors": [
+    {
+      "path": ["supplierCnpj"],
+      "message": "CNPJ é obrigatório"
+    }
+  ]
+}
+```
 
-## Resumo do Sistema
+## Códigos de Status HTTP
 
-**✅ Funcionando:**
-- Autenticação por token API
-- Autenticação por sessão web
-- Middleware flexível (aceita ambos)
-- Controle de permissões por usuário
-- Logs de uso automáticos
+- `200` - Sucesso (GET, PUT)
+- `201` - Criado com sucesso (POST)
+- `400` - Erro de validação
+- `401` - Não autorizado
+- `403` - Acesso negado
+- `404` - Item não encontrado
+- `500` - Erro interno do servidor
 
-**🔑 Token Ativo:** `mxc_test123456789012345678901234567890`
-**👤 Usuário:** Administrador (acesso total)
-**🌐 Base URL:** `http://localhost:5000`
+## Campos Obrigatórios
 
-## Endpoints Corrigidos e Testados
+### Criar Cotação
+- `date` (string ISO)
+- `deadline` (string ISO)
+- `supplierCnpj` (string)
+- `supplierName` (string)
+- `clientCnpj` (string)
+- `clientName` (string)
 
-✅ **Vendedores (Admin):**
-- GET /api/sellers
-- POST /api/sellers
-- PUT /api/sellers/:id
-- DELETE /api/sellers/:id
+### Adicionar Item
+- `barcode` (string)
+- `productName` (string)
+- `quotedQuantity` (number)
 
-✅ **Cotações:**
-- GET /api/quotations
-- GET /api/quotations/:id
-- POST /api/quotations
-- PUT /api/quotations/:id
+## Campos Automáticos
 
-✅ **Itens de Cotação:**
-- GET /api/quotations/:id/items
-- POST /api/quotations/:id/items
-- PATCH /api/quotation-items/:id
-
-✅ **Dashboard e Sistema:**
-- GET /api/dashboard/stats
-- GET /api/api-keys
-- GET /api/auth/me
-
-O sistema está pronto para integração com qualquer aplicação externa usando tokens API seguros.
+- `number` - Gerado automaticamente (COT-YYYY-NNN)
+- `sellerId` - Extraído do token de autenticação
+- `createdAt` - Timestamp automático
+- `status` - Inicia como "Aguardando digitação"
