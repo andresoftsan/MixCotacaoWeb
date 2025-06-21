@@ -1,146 +1,93 @@
 #!/bin/bash
 
-# Teste de criação de item de cotação via API
-# Mix Cotação Web - Teste de Item
+# Script para testar criação de cotação e item via API
+# Mix Cotação Web - Teste completo de API
 
-echo "=== TESTE DE CRIAÇÃO DE ITEM DE COTAÇÃO ==="
-echo ""
-
-# Configurações
+API_KEY="mixapi_prod_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
 BASE_URL="http://localhost:5000"
-API_TOKEN="mxc_test123456789012345678901234567890"
-QUOTATION_ID=1
 
-echo "Base URL: $BASE_URL"
-echo "Token: ${API_TOKEN:0:12}..."
-echo "ID da Cotação: $QUOTATION_ID"
-echo ""
+echo "========================================"
+echo "  Teste Completo de API - Mix Cotação"
+echo "========================================"
 
-# Teste 1: Verificar se a cotação existe
-echo "1. Verificando se a cotação existe..."
-QUOTATION_CHECK=$(curl -s -w "\n%{http_code}" \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$BASE_URL/api/quotations/$QUOTATION_ID")
+# 1. Criar cotação
+echo "1. Criando nova cotação..."
+COTACAO_RESPONSE=$(curl -s -X POST \
+     -H "Authorization: Bearer $API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "date": "2025-06-21",
+       "deadline": "2025-06-30",
+       "supplierCnpj": "11.222.333/0001-44",
+       "supplierName": "Fornecedor Script Teste Ltda",
+       "clientCnpj": "99.888.777/0001-55",
+       "clientName": "Cliente Script Teste SA",
+       "internalObservation": "Cotação criada via script de teste automático"
+     }' \
+     "$BASE_URL/api/quotations")
 
-HTTP_CODE=$(echo "$QUOTATION_CHECK" | tail -n1)
-RESPONSE_BODY=$(echo "$QUOTATION_CHECK" | head -n -1)
+echo "Resposta da criação:"
+echo "$COTACAO_RESPONSE"
 
-if [ "$HTTP_CODE" = "200" ]; then
-    echo "✅ Cotação encontrada: ID $QUOTATION_ID"
-    echo "   Número: $(echo $RESPONSE_BODY | grep -o '"number":"[^"]*' | cut -d'"' -f4)"
-else
-    echo "❌ Erro ao verificar cotação: HTTP $HTTP_CODE"
-    echo "   Resposta: $RESPONSE_BODY"
+# Extrair ID da cotação (assumindo que retorna JSON)
+COTACAO_ID=$(echo "$COTACAO_RESPONSE" | grep -o '"id":[0-9]*' | grep -o '[0-9]*' | head -1)
+
+if [[ -z "$COTACAO_ID" ]]; then
+    echo "❌ Falha ao criar cotação ou extrair ID"
     exit 1
 fi
-echo ""
 
-# Teste 2: Criar item de cotação
-echo "2. Criando item de cotação..."
-ITEM_DATA='{
-  "barcode": "7891234567893",
-  "productName": "Produto Teste Script",
-  "quotedQuantity": 25,
-  "availableQuantity": 20,
-  "unitPrice": "15.75",
-  "validity": "2025-02-28T23:59:59.000Z",
-  "situation": "Parcial"
-}'
+echo "✅ Cotação criada com ID: $COTACAO_ID"
+echo
 
-echo "   Dados do item:"
-echo "   - Código de barras: 7891234567893"
-echo "   - Nome: Produto Teste Script"
-echo "   - Quantidade cotada: 25"
-echo "   - Quantidade disponível: 20"
-echo "   - Preço unitário: R$ 15,75"
-echo "   - Situação: Parcial"
-echo ""
+# 2. Adicionar item à cotação
+echo "2. Adicionando item à cotação..."
+ITEM_RESPONSE=$(curl -s -X POST \
+     -H "Authorization: Bearer $API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "barcode": "7891234567890",
+       "productName": "Produto Teste API 500ml",
+       "quotedQuantity": 50,
+       "availableQuantity": 45,
+       "unitPrice": "12.90",
+       "validity": "2025-07-15T23:59:59.000Z",
+       "situation": "Disponível"
+     }' \
+     "$BASE_URL/api/quotations/$COTACAO_ID/items")
 
-CREATE_RESPONSE=$(curl -s -w "\n%{http_code}" \
-  -X POST \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "$ITEM_DATA" \
-  "$BASE_URL/api/quotations/$QUOTATION_ID/items")
+echo "Resposta da adição de item:"
+echo "$ITEM_RESPONSE"
+echo
 
-HTTP_CODE=$(echo "$CREATE_RESPONSE" | tail -n1)
-RESPONSE_BODY=$(echo "$CREATE_RESPONSE" | head -n -1)
+# 3. Listar itens da cotação
+echo "3. Listando itens da cotação..."
+curl -s -H "Authorization: Bearer $API_KEY" \
+     "$BASE_URL/api/quotations/$COTACAO_ID/items" | \
+     jq '.' 2>/dev/null || echo "Lista de itens retornada"
+echo
 
-echo "   Status HTTP: $HTTP_CODE"
-echo "   Resposta completa:"
-echo "   $RESPONSE_BODY"
-echo ""
+# 4. Atualizar cotação
+echo "4. Atualizando status da cotação..."
+curl -s -X PUT \
+     -H "Authorization: Bearer $API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "status": "Enviada",
+       "internalObservation": "Cotação enviada via teste automático da API"
+     }' \
+     "$BASE_URL/api/quotations/$COTACAO_ID" | \
+     jq '.' 2>/dev/null || echo "Cotação atualizada"
+echo
 
-if [ "$HTTP_CODE" = "200" ]; then
-    echo "✅ Item criado com sucesso!"
-    ITEM_ID=$(echo $RESPONSE_BODY | grep -o '"id":[0-9]*' | cut -d':' -f2)
-    echo "   ID do item criado: $ITEM_ID"
-else
-    echo "❌ Erro ao criar item: HTTP $HTTP_CODE"
-    
-    # Verificar se retornou HTML (problema relatado)
-    if echo "$RESPONSE_BODY" | grep -q "<!DOCTYPE html>"; then
-        echo ""
-        echo "🚨 PROBLEMA IDENTIFICADO: API retornou HTML em vez de JSON!"
-        echo "   Possıveis causas:"
-        echo "   - URL incorreta (deve ser: $BASE_URL/api/quotations/$QUOTATION_ID/items)"
-        echo "   - Servidor não está respondendo na porta 5000"
-        echo "   - Middleware de roteamento com problema"
-        echo ""
-        echo "   Primeiro caracteres da resposta:"
-        echo "   $(echo "$RESPONSE_BODY" | head -c 100)..."
-    fi
-fi
-echo ""
+# 5. Verificar cotação final
+echo "5. Verificando cotação final..."
+curl -s -H "Authorization: Bearer $API_KEY" \
+     "$BASE_URL/api/quotations/$COTACAO_ID" | \
+     jq '.' 2>/dev/null || echo "Dados da cotação retornados"
 
-# Teste 3: Listar itens da cotação para verificar
-echo "3. Verificando itens da cotação..."
-LIST_RESPONSE=$(curl -s -w "\n%{http_code}" \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$BASE_URL/api/quotations/$QUOTATION_ID/items")
-
-HTTP_CODE=$(echo "$LIST_RESPONSE" | tail -n1)
-RESPONSE_BODY=$(echo "$LIST_RESPONSE" | head -n -1)
-
-if [ "$HTTP_CODE" = "200" ]; then
-    ITEM_COUNT=$(echo $RESPONSE_BODY | grep -o '"id":' | wc -l)
-    echo "✅ Listagem de itens bem-sucedida"
-    echo "   Total de itens na cotação: $ITEM_COUNT"
-else
-    echo "❌ Erro ao listar itens: HTTP $HTTP_CODE"
-    echo "   Resposta: $RESPONSE_BODY"
-fi
-echo ""
-
-echo "=== INSTRUÇÕES PARA TESTAR MANUALMENTE ==="
-echo ""
-echo "Se você está usando curl diretamente, use exatamente este formato:"
-echo ""
-echo "curl -X POST \\"
-echo "  -H \"Authorization: Bearer $API_TOKEN\" \\"
-echo "  -H \"Content-Type: application/json\" \\"
-echo "  -d '{
-    \"barcode\": \"7891234567894\",
-    \"productName\": \"Seu Produto\",
-    \"quotedQuantity\": 10,
-    \"availableQuantity\": 8,
-    \"unitPrice\": \"12.50\",
-    \"validity\": \"2025-03-01T23:59:59.000Z\",
-    \"situation\": \"Parcial\"
-  }' \\"
-echo "  \"$BASE_URL/api/quotations/$QUOTATION_ID/items\""
-echo ""
-echo "Campos obrigatórios:"
-echo "- barcode (string)"
-echo "- productName (string)"  
-echo "- quotedQuantity (number)"
-echo ""
-echo "Campos opcionais:"
-echo "- availableQuantity (number)"
-echo "- unitPrice (string)"
-echo "- validity (string ISO date)"
-echo "- situation (\"Disponível\" | \"Indisponível\" | \"Parcial\")"
-echo ""
-echo "=== FIM DO TESTE ==="
+echo
+echo "========================================"
+echo "Teste completo finalizado!"
+echo "ID da cotação criada: $COTACAO_ID"
+echo "========================================"
