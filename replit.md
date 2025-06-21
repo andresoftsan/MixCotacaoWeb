@@ -150,6 +150,9 @@ The system supports API token authentication for external integrations:
 - API authentication: Confirmed working with proper Bearer token headers
 - Database connectivity: Stable connection with comprehensive error logging
 - AWS Production SSL Certificate Error: Created troubleshooting scripts and guides for DATABASE_URL configuration conflicts
+- AWS PostgreSQL Driver: Migrated from Neon serverless driver to standard pg driver for local PostgreSQL compatibility
+- ESM Module Resolution: Fixed Node.js ES modules import errors in production build
+- Environment Variables: Configured dotenv loading and PM2 env_file support for production
 
 ## Changelog
 - June 17, 2025: Initial setup and core functionality
