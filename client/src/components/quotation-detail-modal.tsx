@@ -266,7 +266,7 @@ export default function QuotationDetailModal({
                             onChange={(e) =>
                               handleItemUpdate(item.id, "unitPrice", e.target.value)
                             }
-                            disabled={quotation.status === "Enviada"}
+                            disabled={quotation.status === "Enviada" || quotation.status === "Prazo Encerrado"}
                           />
                         </TableCell>
                         <TableCell>
@@ -285,7 +285,7 @@ export default function QuotationDetailModal({
                                 e.target.value || null
                               )
                             }
-                            disabled={quotation.status === "Enviada"}
+                            disabled={quotation.status === "Enviada" || quotation.status === "Prazo Encerrado"}
                           />
                         </TableCell>
                         <TableCell>
@@ -294,7 +294,7 @@ export default function QuotationDetailModal({
                             onValueChange={(value) =>
                               handleItemUpdate(item.id, "situation", value)
                             }
-                            disabled={quotation.status === "Enviada"}
+                            disabled={quotation.status === "Enviada" || quotation.status === "Prazo Encerrado"}
                           >
                             <SelectTrigger className="w-24 text-sm">
                               <SelectValue />
