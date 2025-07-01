@@ -163,3 +163,13 @@ The system supports API token authentication for external integrations:
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Changes (July 1, 2025)
+
+✅ **Bloqueio de Edição para Status "Prazo Encerrado"**
+- Implementado bloqueio de edição de itens quando cotação tem status "Prazo Encerrado"
+- Atualizada página de edição de cotação (quotation-edit.tsx)
+- Atualizado modal de detalhes da cotação (quotation-detail-modal.tsx)
+- Comportamento agora idêntico ao status "Enviada" - sem possibilidade de edição
+- Campos bloqueados: quantidade disponível, preço unitário, validade, situação
+- Botões de ação (Salvar/Enviar) também bloqueados para status expirado

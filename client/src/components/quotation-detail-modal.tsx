@@ -254,7 +254,7 @@ export default function QuotationDetailModal({
                                 parseInt(e.target.value) || null
                               )
                             }
-                            disabled={quotation.status === "Enviada"}
+                            disabled={quotation.status === "Enviada" || quotation.status === "Prazo Encerrado"}
                           />
                         </TableCell>
                         <TableCell>
