@@ -208,7 +208,7 @@ export default function QuotationDetailModal({
               value={internalObservation || quotation.internalObservation || ""}
               onChange={(e) => setInternalObservation(e.target.value)}
               rows={3}
-              disabled={quotation.status === "Enviada"}
+              disabled={quotation.status === "Enviada" || quotation.status === "Prazo Encerrado"}
             />
           </div>
 
@@ -376,7 +376,7 @@ export default function QuotationDetailModal({
             <Button variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            {quotation.status !== "Enviada" && (
+            {quotation.status !== "Enviada" && quotation.status !== "Prazo Encerrado" && (
               <>
                 <Button
                   onClick={handleSaveQuotation}

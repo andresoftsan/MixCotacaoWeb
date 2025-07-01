@@ -365,6 +365,7 @@ export default function QuotationEditPage() {
     return <div>Cotação não encontrada</div>;
   }
 
+  // Bloquear edição quando status for "Enviada" ou "Prazo Encerrado"
   const isEditable = quotation?.status === "Aguardando digitação";
 
   return (
